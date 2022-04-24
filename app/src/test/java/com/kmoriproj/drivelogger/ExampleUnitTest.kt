@@ -1,4 +1,4 @@
-package com.example.drivelogger
+package com.kmoriproj.drivelogger
 
 import org.junit.Test
 
