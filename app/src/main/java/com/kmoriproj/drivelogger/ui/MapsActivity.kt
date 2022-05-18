@@ -12,7 +12,10 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.databinding.ActivityMainBinding
 import com.kmoriproj.drivelogger.ui.fragments.DrivingFragment
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
 
+@AndroidEntryPoint
 class MapsActivity : AppCompatActivity() {
 
     private lateinit var mMap: GoogleMap
