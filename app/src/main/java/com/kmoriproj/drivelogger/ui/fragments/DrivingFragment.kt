@@ -3,12 +3,18 @@ package com.kmoriproj.drivelogger.ui.fragments
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
@@ -21,6 +27,8 @@ import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_PAUSE_SERVICE
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_START_OR_RESUME_SERVICE
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_STOP_SERVICE
+import com.kmoriproj.drivelogger.common.Constants.Companion.FASTEST_LOCATION_UPDATE_INTERVAL
+import com.kmoriproj.drivelogger.common.Constants.Companion.LOCATION_UPDATE_INTERVAL
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAPVIEW_BUNDLE_KEY
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAP_ZOOM
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR
@@ -34,6 +42,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -110,7 +119,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                 REQUEST_CODE_LOCATION_PERMISSION,
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
-                // Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
             )
         }
     }

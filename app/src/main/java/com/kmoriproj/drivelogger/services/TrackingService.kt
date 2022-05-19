@@ -147,16 +147,16 @@ class TrackingService : LifecycleService() {
      * Location Callback that receives location updates and adds them to pathPoints.
      */
     private val locationCallback = object : LocationCallback() {
-//        override fun onLocationResult(result: LocationResult?) {
-//            super.onLocationResult(result)
-//            if(isTracking.value!!) {
-//                result?.locations?.let { locations ->
-//                    for(location in locations) {
-//                        addPathPoint(location)
-//                    }
-//                }
-//            }
-//        }
+        override fun onLocationResult(result: LocationResult) {
+            super.onLocationResult(result)
+            if(isTracking.value!!) {
+                result?.locations?.let { locations ->
+                    for(location in locations) {
+                        addPathPoint(location)
+                    }
+                }
+            }
+        }
     }
 
     private var isTimerEnabled = false
