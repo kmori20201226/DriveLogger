@@ -3,46 +3,33 @@ package com.kmoriproj.drivelogger.ui.fragments
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.location.Location
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
-import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.kmoriproj.drivelogger.R
+import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_INIT_LOCATION
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_PAUSE_SERVICE
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_START_OR_RESUME_SERVICE
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_STOP_SERVICE
-import com.kmoriproj.drivelogger.common.Constants.Companion.FASTEST_LOCATION_UPDATE_INTERVAL
-import com.kmoriproj.drivelogger.common.Constants.Companion.LOCATION_UPDATE_INTERVAL
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAPVIEW_BUNDLE_KEY
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAP_ZOOM
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
 import com.kmoriproj.drivelogger.common.Constants.Companion.REQUEST_CODE_LOCATION_PERMISSION
 import com.kmoriproj.drivelogger.common.TrackingUtility
-import com.kmoriproj.drivelogger.databinding.ActivityMainBinding
 import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
 import com.kmoriproj.drivelogger.services.TrackingService
 import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
-import timber.log.Timber
-import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -54,10 +41,6 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     private lateinit var binding: DrivingFragmentBinding
     private var pathPoints = mutableListOf<MutableList<LatLng>>()
     //private val viewModel: MainViewModel by viewModels()
-
-    companion object {
-        fun newInstance() = DrivingFragment()
-    }
 
     private lateinit var mMap: GoogleMap
     // *** IMPORTANT ***
@@ -73,7 +56,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         }
     }
 
-    val mapView
+    private val mapView
         get() = binding.mapView
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -88,16 +71,20 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = DrivingFragmentBinding.bind(view!!)
+        binding = DrivingFragmentBinding.bind(view)
         binding.mapView.onCreate(mapViewBundle)
         binding.mapView.getMapAsync(this)
         binding.buttonStartStop.setOnClickListener {
             toggleRun()
         }
         binding.buttonTerminate.setOnClickListener {
-
+            stopTrackingService()
         }
         requestPermissions()
+        Intent(requireContext(), TrackingService::class.java).also {
+            it.action = ACTION_INIT_LOCATION
+            requireContext().startService(it)
+        }
     }
 
     private fun requestPermissions() {
@@ -158,31 +145,42 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         mMap.mapType = MAP_TYPE_NORMAL
         uiSettings.isZoomGesturesEnabled = true
         uiSettings.isZoomControlsEnabled = true
-        TrackingService.isTracking.observe(viewLifecycleOwner, Observer {
-            updateTracking(it)
-        })
 
-        TrackingService.pathPoints.observe(viewLifecycleOwner, Observer {
+        TrackingService.isTracking.observe(viewLifecycleOwner) {
+            updateTracking(it)
+        }
+
+        TrackingService.pathPoints.observe(viewLifecycleOwner) {
             pathPoints = it
             addLatestPolyline()
             moveCameraToUser()
-        })
+        }
 
-        TrackingService.timeRunInMillis.observe(viewLifecycleOwner, Observer {
+        TrackingService.timeRunInMillis.observe(viewLifecycleOwner) {
             currentTimeInMillis = it as Long
             val timeInSec = currentTimeInMillis / 1000
             binding.tvElapsed.text = "%02d:%02d:%02d".format(
                 timeInSec / 3600,
                 (timeInSec / 60) % 60,
                 timeInSec % 60)
-        })
+        }
+
+        TrackingService.distanceFromStart.observe(viewLifecycleOwner) {
+            binding.tvDistance.text = "%dkm".format((it / 1000.0).toInt())
+        }
+
+        TrackingService.initLocation.observe(viewLifecycleOwner) {
+            val initPos = LatLng(it.latitude, it.longitude)
+            mMap.addMarker(MarkerOptions().position(initPos).title("Initial location"))
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(initPos))
+        }
     }
     /**
      * Will move the camera to the user's location.
      */
     private fun moveCameraToUser() {
         if (pathPoints.isNotEmpty() && pathPoints.last().isNotEmpty()) {
-            mMap?.animateCamera(
+            mMap.animateCamera(
                 CameraUpdateFactory.newLatLngZoom(
                     pathPoints.last().last(),
                     MAP_ZOOM
@@ -209,20 +207,6 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     ) {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
-
-    /**
-     * Adds all polylines to the pathPoints list to display them after screen rotations
-     */
-    private fun addAllPolylines() {
-        for (polyline in pathPoints) {
-            val polylineOptions = PolylineOptions()
-                .color(POLYLINE_COLOR)
-                .width(POLYLINE_WIDTH)
-                .addAll(polyline)
-            mMap?.addPolyline(polylineOptions)
-        }
-    }
-
     /**
      * Draws a polyline between the two latest points.
      */
@@ -237,7 +221,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                 .add(preLastLatLng)
                 .add(lastLatLng)
 
-            mMap?.addPolyline(polylineOptions)
+            mMap.addPolyline(polylineOptions)
         }
     }
 

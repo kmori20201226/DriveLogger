@@ -33,25 +33,6 @@ class TrackingUtility {
         }
 
         /**
-         * Takes an amount of milliseconds and converts it to a formatted string, optionally
-         * with milliseconds
-         */
-        fun getFormattedStopWatchTime(ms: Long, includeMillis: Boolean = false): String {
-            var milliseconds = ms
-            val hours = TimeUnit.MILLISECONDS.toHours(milliseconds)
-            milliseconds -= TimeUnit.HOURS.toMillis(hours)
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(milliseconds)
-            milliseconds -= TimeUnit.MINUTES.toMillis(minutes)
-            val seconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds)
-            if (!includeMillis) {
-                return "%02d:%02d:%02d".format(hours, minutes, seconds)
-            }
-            milliseconds -= TimeUnit.SECONDS.toMillis(seconds)
-            milliseconds /= 10
-            return "%02d:%02d:%02d.%02d".format(hours, minutes, seconds, milliseconds)
-        }
-
-        /**
          * Calculates the length of a specific polyline
          */
         fun calculatePolylineLength(polyline: Polyline): Float {

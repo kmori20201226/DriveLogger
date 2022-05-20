@@ -32,6 +32,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.model.LatLng
+import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_INIT_LOCATION
+import com.kmoriproj.drivelogger.common.MovementTracker
 import com.kmoriproj.drivelogger.common.Polylines
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -45,16 +47,22 @@ import javax.inject.Inject
 class TrackingService : LifecycleService() {
 
     private val timeRunInSeconds = MutableLiveData<Long>()
+    private var movementTracker : MovementTracker? = null
 
     private var isFirstRun = true
     private var serviceKilled = false
 
     companion object {
+        val initLocation = MutableLiveData<Location>()
         val timeRunInMillis = MutableLiveData<Long>()
+        val distanceFromStart = MutableLiveData<Double>()
         val isTracking = MutableLiveData<Boolean>()
         val pathPoints = MutableLiveData<Polylines>()
     }
 
+    fun getLastLocation() {
+        fusedLocationProviderClient.lastLocation
+    }
     /**
      * Base notification builder that contains the settings every notification will have
      */
@@ -81,7 +89,9 @@ class TrackingService : LifecycleService() {
     }
 
     private fun postInitialValues() {
+        movementTracker = MovementTracker()
         timeRunInMillis.postValue(0L)
+        distanceFromStart.postValue(0.0)
         isTracking.postValue(false)
         pathPoints.postValue(mutableListOf())
         timeRunInSeconds.postValue(0L)
@@ -90,6 +100,11 @@ class TrackingService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             when (it.action) {
+                ACTION_INIT_LOCATION -> {
+                    fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+                        initLocation.postValue(it!!)
+                    }
+                }
                 ACTION_START_OR_RESUME_SERVICE -> {
                     if(isFirstRun) {
                         startForegroundService()
@@ -107,6 +122,7 @@ class TrackingService : LifecycleService() {
                     Timber.d("Stopped service.")
                     killService()
                 }
+                else -> {}
             }
         }
         return super.onStartCommand(intent, flags, startId)
@@ -131,7 +147,7 @@ class TrackingService : LifecycleService() {
     private fun updateLocationChecking(isTracking: Boolean) {
         if (isTracking) {
             if (TrackingUtility.hasLocationPermissions(this)) {
-                val request = LocationRequest().apply {
+                val request = LocationRequest.create().apply {
                     interval = LOCATION_UPDATE_INTERVAL
                     fastestInterval = FASTEST_LOCATION_UPDATE_INTERVAL
                     priority = PRIORITY_HIGH_ACCURACY
@@ -152,7 +168,8 @@ class TrackingService : LifecycleService() {
             if(isTracking.value!!) {
                 result?.locations?.let { locations ->
                     for(location in locations) {
-                        addPathPoint(location)
+                        if (movementTracker?.addLocation(location) == true)
+                            addPathPoint(location)
                     }
                 }
             }
@@ -183,6 +200,7 @@ class TrackingService : LifecycleService() {
                 if (timeRunInMillis.value!! >= lastSecondTimestamp + 1000L) {
                     timeRunInSeconds.postValue(timeRunInSeconds.value!! + 1)
                     lastSecondTimestamp += 1000L
+                    distanceFromStart.postValue( movementTracker?.distanceFromStart)
                 }
                 delay(Constants.TIMER_UPDATE_INTERVAL)
             }
@@ -240,8 +258,11 @@ class TrackingService : LifecycleService() {
         // updating notification
         timeRunInSeconds.observe(this) {
             if(!serviceKilled) {
-                val notification = curNotification
-                    .setContentText(TrackingUtility.getFormattedStopWatchTime(it * 1000L))
+                val text = "%02d:%02d:%02d".format(
+                    it / 3600,
+                    (it / 60) % 60,
+                    it % 60)
+                val notification = curNotification.setContentText(text)
                 notificationManager.notify(NOTIFICATION_ID, notification.build())
             }
         }
