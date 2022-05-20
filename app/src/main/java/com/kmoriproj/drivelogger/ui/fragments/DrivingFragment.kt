@@ -19,7 +19,9 @@ import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_INIT_LOCATION
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_PAUSE_SERVICE
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_START_OR_RESUME_SERVICE
 import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_STOP_SERVICE
-import com.kmoriproj.drivelogger.common.Constants.Companion.MAPVIEW_BUNDLE_KEY
+import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_MAPVIEW
+import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_POINT_IX1
+import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_POINT_IX2
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAP_ZOOM
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
@@ -40,6 +42,8 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     private var currentTimeInMillis = 0L
     private lateinit var binding: DrivingFragmentBinding
     private var pathPoints = mutableListOf<MutableList<LatLng>>()
+    private var lastPointIx1 = 0
+    private var lastPointIx2 = 0
     //private val viewModel: MainViewModel by viewModels()
 
     private lateinit var mMap: GoogleMap
@@ -52,7 +56,9 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
 
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
-            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY)
+            mapViewBundle = savedInstanceState.getBundle(BUNDLE_KEY_MAPVIEW)
+            lastPointIx1 = savedInstanceState.getInt(BUNDLE_KEY_POINT_IX1, 0)
+            lastPointIx2 = savedInstanceState.getInt(BUNDLE_KEY_POINT_IX2, 0)
         }
     }
 
@@ -61,10 +67,12 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY)
+        outState.putInt(BUNDLE_KEY_POINT_IX1, lastPointIx1)
+        outState.putInt(BUNDLE_KEY_POINT_IX2, lastPointIx2)
+        mapViewBundle = outState.getBundle(BUNDLE_KEY_MAPVIEW)
         if (mapViewBundle == null) {
             mapViewBundle = Bundle()
-            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle)
+            outState.putBundle(BUNDLE_KEY_MAPVIEW, mapViewBundle)
         }
         mapView.onSaveInstanceState(mapViewBundle!!)
     }
@@ -213,15 +221,22 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     private fun addLatestPolyline() {
         // only add polyline if we have at least two elements in the last polyline
         if (pathPoints.isNotEmpty() && pathPoints.last().size > 1) {
-            val preLastLatLng = pathPoints.last()[pathPoints.last().size - 2]
-            val lastLatLng = pathPoints.last().last()
-            val polylineOptions = PolylineOptions()
-                .color(POLYLINE_COLOR)
-                .width(POLYLINE_WIDTH)
-                .add(preLastLatLng)
-                .add(lastLatLng)
-
-            mMap.addPolyline(polylineOptions)
+            if (lastPointIx1 >= pathPoints.size) {
+                lastPointIx1 = 0
+                lastPointIx2 = 0
+            }
+            for (j in lastPointIx1 .. pathPoints.size - 1) {
+                val points = pathPoints[j]
+                val polylineOptions = PolylineOptions()
+                    .color(POLYLINE_COLOR)
+                    .width(POLYLINE_WIDTH)
+                for (i in lastPointIx2..points.size - 1) {
+                    polylineOptions.add(points[i])
+                    lastPointIx2 = i
+                }
+                mMap.addPolyline(polylineOptions)
+                lastPointIx1 = j
+            }
         }
     }
 
