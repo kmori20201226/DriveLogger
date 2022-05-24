@@ -89,6 +89,7 @@ class TrackingService : LifecycleService() {
     }
 
     private fun postInitialValues() {
+        movementTracker?.close()
         movementTracker = MovementTracker()
         timeRunInMillis.postValue(0L)
         distanceFromStart.postValue(0.0)
@@ -102,7 +103,9 @@ class TrackingService : LifecycleService() {
             when (it.action) {
                 ACTION_INIT_LOCATION -> {
                     fusedLocationProviderClient.lastLocation.addOnSuccessListener {
-                        initLocation.postValue(it!!)
+                        if (it != null) {
+                            initLocation.postValue(it!!)
+                        }
                     }
                 }
                 ACTION_START_OR_RESUME_SERVICE -> {

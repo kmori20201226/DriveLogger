@@ -161,7 +161,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         TrackingService.pathPoints.observe(viewLifecycleOwner) {
             pathPoints = it
             addLatestPolyline()
-            moveCameraToUser()
+            moveCameraToUser(false)
         }
 
         TrackingService.timeRunInMillis.observe(viewLifecycleOwner) {
@@ -180,19 +180,25 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         TrackingService.initLocation.observe(viewLifecycleOwner) {
             val initPos = LatLng(it.latitude, it.longitude)
             mMap.addMarker(MarkerOptions().position(initPos).title("Initial location"))
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(initPos))
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initPos, MAP_ZOOM))
         }
     }
     /**
      * Will move the camera to the user's location.
      */
-    private fun moveCameraToUser() {
+    private fun moveCameraToUser(zoom: Boolean=false) {
         if (pathPoints.isNotEmpty() && pathPoints.last().isNotEmpty()) {
             mMap.animateCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                    pathPoints.last().last(),
-                    MAP_ZOOM
-                )
+                if (zoom) {
+                    CameraUpdateFactory.newLatLngZoom(
+                        pathPoints.last().last(),
+                        MAP_ZOOM
+                    )
+                } else {
+                    CameraUpdateFactory.newLatLng(
+                        pathPoints.last().last(),
+                    )
+                }
             )
         }
     }
