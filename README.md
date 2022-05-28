@@ -1,6 +1,6 @@
 # Drive Logger
 
-This is a gps logger program.
+This is a GPS logger program.
 
 ![Main screen](./doc/Screenshot1.png)
 
@@ -9,6 +9,7 @@ This is a gps logger program.
 # Current state of this project (as of 2022/05/29)
 
 Tracked route can be saved but no use afterward.
+Data points from GPS are tracked asis without eliminating uncertain data.
 
 # Before you compile
 
