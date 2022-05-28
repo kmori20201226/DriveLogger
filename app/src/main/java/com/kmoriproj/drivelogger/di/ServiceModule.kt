@@ -8,6 +8,9 @@ import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants
 import com.kmoriproj.drivelogger.ui.MapsActivity
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.kmoriproj.drivelogger.common.GPSTracker
+import com.kmoriproj.drivelogger.repositories.TrajectoryRepository
+import com.kmoriproj.drivelogger.repositories.TripRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -54,7 +54,7 @@
         android:alpha="0.5"
         android:text="@string/start_text"
         android:textAllCaps="true"
-        android:textSize="22sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -67,7 +67,7 @@
         android:alpha="0.5"
         android:text="@string/terminate_text"
         android:textAllCaps="false"
-        android:textSize="22sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0"

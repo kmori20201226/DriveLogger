@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/nav_graph"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
     app:startDestination="@id/drivingFragment">
     <fragment
         android:id="@+id/drivingFragment"
         android:name="com.kmoriproj.drivelogger.ui.fragments.DrivingFragment"
         android:label="DrivingFragment" >
+        <action
+            android:id="@+id/action_drivingFragment_to_endOfTripFragment"
+            app:destination="@id/endOfTripFragment"
+            app:enterAnim="@anim/nav_default_enter_anim" />
     </fragment>
+    <fragment
+        android:id="@+id/endOfTripFragment"
+        android:name="com.kmoriproj.drivelogger.ui.fragments.EndOfTripFragment"
+        android:label="fragment_end_of_trip"
+        tools:layout="@layout/fragment_end_of_trip" />
 </navigation>

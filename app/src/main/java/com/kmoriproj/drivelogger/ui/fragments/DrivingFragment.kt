@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
@@ -87,6 +88,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         }
         binding.buttonTerminate.setOnClickListener {
             stopTrackingService()
+            findNavController().navigate(R.id.action_drivingFragment_to_endOfTripFragment)
         }
         requestPermissions()
         Intent(requireContext(), TrackingService::class.java).also {
@@ -155,7 +157,13 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         uiSettings.isZoomControlsEnabled = true
 
         TrackingService.isTracking.observe(viewLifecycleOwner) {
-            updateTracking(it)
+            updateTracking(it, TrackingService.isTraveling.value ?: false)
+        }
+
+        TrackingService.isTraveling.observe(viewLifecycleOwner) {
+            if (it == false) {
+                mMap.clear()
+            }
         }
 
         TrackingService.pathPoints.observe(viewLifecycleOwner) {
@@ -173,14 +181,16 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                 timeInSec % 60)
         }
 
-        TrackingService.distanceFromStart.observe(viewLifecycleOwner) {
-            binding.tvDistance.text = "%dkm".format((it / 1000.0).toInt())
+        TrackingService.distanceFromStartKm.observe(viewLifecycleOwner) {
+            binding.tvDistance.text = "%dkm".format(it.toInt())
         }
 
         TrackingService.initLocation.observe(viewLifecycleOwner) {
-            val initPos = LatLng(it.latitude, it.longitude)
-            mMap.addMarker(MarkerOptions().position(initPos).title("Initial location"))
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initPos, MAP_ZOOM))
+            if (it != null) {
+                val initPos = LatLng(it.latitude, it.longitude)
+                mMap.addMarker(MarkerOptions().position(initPos).title("Initial location"))
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initPos, MAP_ZOOM))
+            }
         }
     }
     /**
@@ -226,7 +236,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
      */
     private fun addLatestPolyline() {
         // only add polyline if we have at least two elements in the last polyline
-        if (pathPoints.isNotEmpty() && pathPoints.last().size > 1) {
+        if (pathPoints.isNotEmpty() && pathPoints.last().size > 0) {
             if (lastPointIx1 >= pathPoints.size) {
                 lastPointIx1 = 0
                 lastPointIx2 = 0
@@ -249,11 +259,16 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     /**
      * Updates the tracking variable and the UI accordingly
      */
-    private fun updateTracking(isTracking: Boolean) {
+    private fun updateTracking(isTracking: Boolean, isTraveling: Boolean) {
         this.isTracking = isTracking
-        if (!isTracking && currentTimeInMillis > 0L) {
-            binding.buttonStartStop.text = getString(R.string.start_text)
-            binding.buttonTerminate.visibility = View.VISIBLE
+        if (!isTracking) {
+            if (!isTraveling) {
+                binding.buttonStartStop.text = getString(R.string.start_text)
+                binding.buttonTerminate.visibility = View.GONE
+            } else {
+                binding.buttonStartStop.text = getString(R.string.restart_text)
+                binding.buttonTerminate.visibility = View.VISIBLE
+            }
         } else if (isTracking) {
             binding.buttonStartStop.text = getString(R.string.pause_text)
             binding.buttonTerminate.visibility = View.GONE
