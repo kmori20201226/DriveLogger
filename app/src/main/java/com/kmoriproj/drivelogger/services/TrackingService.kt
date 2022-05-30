@@ -52,12 +52,9 @@ class TrackingService : LifecycleService() {
         val distanceFromStartKm = MutableLiveData<Float>()
         val isTracking = MutableLiveData<Boolean>()
         val isTraveling = MutableLiveData<Boolean>()
-        val pathPoints = MutableLiveData<Polylines>()
+        val pathPoints = MutableLiveData<Polyline>()
     }
 
-    fun getLastLocation() {
-        fusedLocationProviderClient.lastLocation
-    }
     /**
      * Base notification builder that contains the settings every notification will have
      */
@@ -189,7 +186,6 @@ class TrackingService : LifecycleService() {
      * Starts the timer for the tracking.
      */
     private fun startTimer() {
-        addEmptyPolyline()
         isTracking.postValue(true)
         isTraveling.postValue(true)
         timeStarted = System.currentTimeMillis()
@@ -227,19 +223,11 @@ class TrackingService : LifecycleService() {
         location?.let {
             val pos = LatLng(location.latitude, location.longitude)
             pathPoints.value?.apply {
-                last().add(pos)
+                this.add(pos)
                 pathPoints.postValue(this)
             }
         }
     }
-
-    /**
-     * Will add an empty polyline in the pathPoints list or initialize it if empty.
-     */
-    private fun addEmptyPolyline() = pathPoints.value?.apply {
-        add(mutableListOf())
-        pathPoints.postValue(this)
-    } ?: pathPoints.postValue(mutableListOf(mutableListOf()))
 
     /**
      * Starts this service as a foreground service and creates the necessary notification
@@ -247,6 +235,7 @@ class TrackingService : LifecycleService() {
     private fun startForegroundService() {
         Timber.d("TrackingService started.")
 
+        pathPoints.postValue(mutableListOf())
         postInitialValues()
 
         val notificationManager =

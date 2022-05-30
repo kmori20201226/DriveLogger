@@ -36,7 +36,18 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/tvToolbarTitle"
+                app:layout_constraintBottom_toBottomOf="@id/tvToolbarTitle"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:text="v0.1" />
+
         </com.google.android.material.appbar.MaterialToolbar>
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <FrameLayout

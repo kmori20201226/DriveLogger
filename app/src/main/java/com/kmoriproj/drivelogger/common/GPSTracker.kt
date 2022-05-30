@@ -165,7 +165,7 @@ class GPSTracker @Inject constructor(
                 lastPos = pos
                 locationList.add(loc)
                 currentTrip?.let {
-                    it.distanceFromStart += distanceInMeter / 1000.0f
+                    it.distanceFromStart += distanceInMeter
                 }
                 liveCurrentTrip.value = currentTrip
                 return true

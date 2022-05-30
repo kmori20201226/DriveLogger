@@ -7,7 +7,7 @@ class Constants {
 
     companion object {
         const val BUNDLE_KEY_MAPVIEW = "MapViewBundleKey"
-        const val BUNDLE_KEY_POINT_IX1 = "PointIx1BundleKey"
+        const val BUNDLE_KEY_POINT_IX = "PointIx1BundleKey"
         const val BUNDLE_KEY_POINT_IX2 = "PointIx2BundleKey"
 
         const val REQUEST_CODE_LOCATION_PERMISSION = 0
