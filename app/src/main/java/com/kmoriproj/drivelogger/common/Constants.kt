@@ -12,6 +12,8 @@ class Constants {
 
         const val REQUEST_CODE_LOCATION_PERMISSION = 0
 
+        const val ARGKEY_CURRENT_TRIPID = "CurrentTripId"
+
         // Database
         const val DATABASE_NAME = "running_db"
 

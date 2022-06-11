@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/miCancelTracking"
-        android:icon="@drawable/ic_close_white"
-        android:title="Cancel Run"
-        android:visible="false"
+        android:id="@+id/miTripList"
+        android:icon="@drawable/ic_view_list"
+        android:title="@string/show_trips"
+        android:visible="true"
         app:showAsAction="always" />
 
 </menu>

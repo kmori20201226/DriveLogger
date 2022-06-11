@@ -12,10 +12,32 @@
             android:id="@+id/action_drivingFragment_to_endOfTripFragment"
             app:destination="@id/endOfTripFragment"
             app:enterAnim="@anim/nav_default_enter_anim" />
+        <action
+            android:id="@+id/action_drivingFragment_to_tripsFragment"
+            app:destination="@id/tripsFragment" />
     </fragment>
     <fragment
         android:id="@+id/endOfTripFragment"
         android:name="com.kmoriproj.drivelogger.ui.fragments.EndOfTripFragment"
         android:label="fragment_end_of_trip"
-        tools:layout="@layout/fragment_end_of_trip" />
+        tools:layout="@layout/fragment_end_of_trip" >
+        <action
+            android:id="@+id/action_endOfTripFragment_to_tripsFragment"
+            app:destination="@id/tripsFragment"
+            app:popUpTo="@id/drivingFragment"
+            app:popUpToInclusive="false"
+            />
+    </fragment>
+    <fragment
+        android:id="@+id/tripsFragment"
+        android:name="com.kmoriproj.drivelogger.ui.fragments.TripsFragment"
+        android:label="TripsFragment" >
+        <action
+            android:id="@+id/action_tripsFragment_to_reviewFragment"
+            app:destination="@id/reviewFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/reviewFragment"
+        android:name="com.kmoriproj.drivelogger.ui.fragments.ReviewFragment"
+        android:label="ReviewFragment" />
 </navigation>

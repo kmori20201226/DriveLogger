@@ -4,4 +4,16 @@
     <string name="restart_text">Restart</string>
     <string name="pause_text">Pause</string>
     <string name="terminate_text">Terminate</string>
+    <string name="date">DATE</string>
+    <string name="time">TIME</string>
+    <string name="distance">DISTANCE</string>
+    <string name="DATE">DATE</string>
+    <string name="show_trips">Show trips</string>
+    <string name="sort_by">Sort by:</string>
+    <string-array name="filter_options">
+        <item>Date</item>
+        <item>Time</item>
+        <item>From farest</item>
+        <item>From nearest</item>
+    </string-array>
 </resources>

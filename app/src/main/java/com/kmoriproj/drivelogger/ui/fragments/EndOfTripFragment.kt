@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.kmoriproj.drivelogger.EndOfTripViewModel
 import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
@@ -33,7 +34,8 @@ class EndOfTripFragment : Fragment(R.layout.fragment_end_of_trip) {
         binding.btnSave.setOnClickListener {
             viewModel.liveCurrentTrip.value?.caption = binding.txComments.text?.toString()!!
             viewModel.finishTrip()
-            activity?.onBackPressed()
+            findNavController().navigate(R.id.action_endOfTripFragment_to_tripsFragment)
+            //activity?.onBackPressed()
         }
         fun formatTime(t:Long): String {
             val s = Date(t)

@@ -5,7 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.View
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -75,6 +75,17 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         mapView.onSaveInstanceState(mapViewBundle!!)
     }
 
+    private var menu: Menu? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        setHasOptionsMenu(true)
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = DrivingFragmentBinding.bind(view)
@@ -92,6 +103,25 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             it.action = ACTION_INIT_LOCATION
             requireContext().startService(it)
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.miTripList -> {
+                findNavController().navigate(R.id.action_drivingFragment_to_tripsFragment)
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.toolbar_menu_tracking, menu)
+        this.menu = menu
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
     }
 
     private fun requestPermissions() {

@@ -28,24 +28,24 @@ class GPSTracker @Inject constructor(
     val liveCurrentTrip: MutableLiveData<Trip> = MutableLiveData<Trip>(currentTrip)
     //val liveCurrentTrip: LiveData<Trip> = _liveCurrentTrip
 
-    private var writer: CsvFileWriter? = null;
+    private var writer: CsvFileWriter? = null
     private val trajBuf = mutableListOf<TrajPoint>()
     private val trajBufSpill = 100
     val job = Job()
     val coroutinesScope: CoroutineScope = CoroutineScope(job + Dispatchers.IO)
     var lastPos: LatLng? = null
-    val locationList = mutableListOf<Location>()
+    //val locationList = mutableListOf<Location>()
     val distanceFromStartKm
-        get() = currentTrip?.distanceFromStart ?: 0 / 1000.0f
+        get() = (currentTrip?.distanceFromStart ?: 0.0f) / 1000.0f
     fun reset() {
         writer?.close()
         writer = null
         trajBuf.clear()
         lastPos = null
-        locationList.clear()
+        //locationList.clear()
     }
     private fun openDumpfile() {
-        var dir = File(Environment.getExternalStoragePublicDirectory(
+        val dir = File(Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_DOCUMENTS).absolutePath + "/DriveLogger")
         dir.mkdirs()
         val now = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
@@ -152,7 +152,7 @@ class GPSTracker @Inject constructor(
         writer?.writeRow(row)
         if (lastPos == null) {
             lastPos = pos
-            locationList.add(loc)
+            //locationList.add(loc)
             return true
         } else {
             val result = FloatArray(1)
@@ -163,7 +163,7 @@ class GPSTracker @Inject constructor(
             val distanceInMeter = result[0]
             if (distanceInMeter >= 2.0) {
                 lastPos = pos
-                locationList.add(loc)
+                //locationList.add(loc)
                 currentTrip?.let {
                     it.distanceFromStart += distanceInMeter
                 }

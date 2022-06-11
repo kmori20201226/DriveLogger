@@ -39,9 +39,10 @@ data class TrajPoint(
     }
 }
 
-data class TrajPointList constructor(
-    val trajPoint: List<TrajPoint>
-) {
+data class TrajPointList(val trajPoint: List<TrajPoint>) {
+    constructor(a: TrajPointList, b: TrajPointList) :
+        this(listOf(a.trajPoint, b.trajPoint).flatten()) {
+        }
     private fun getBoundingBox(ptList: List<TrajPoint>): BoundingBox {
         var min_x = Double.MAX_VALUE
         var max_x = Double.MIN_VALUE
