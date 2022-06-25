@@ -1,52 +1,55 @@
 package com.kmoriproj.drivelogger.ui.fragments
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Build
+import android.content.*
+import android.content.pm.PackageManager
+import android.location.Location
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.*
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.material.snackbar.Snackbar
+import com.kmoriproj.drivelogger.BuildConfig
 import com.kmoriproj.drivelogger.R
-import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_INIT_LOCATION
-import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_PAUSE_SERVICE
-import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_START_OR_RESUME_SERVICE
-import com.kmoriproj.drivelogger.common.Constants.Companion.ACTION_STOP_SERVICE
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_MAPVIEW
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_POINT_IX
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAP_ZOOM
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
-import com.kmoriproj.drivelogger.common.Constants.Companion.REQUEST_CODE_LOCATION_PERMISSION
-import com.kmoriproj.drivelogger.common.TrackingUtility
+import com.kmoriproj.drivelogger.common.Polyline
 import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
-import com.kmoriproj.drivelogger.services.TrackingService
+import com.kmoriproj.drivelogger.services.ForegroundOnlyLocationService
+import com.kmoriproj.drivelogger.ui.DrivingViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import pub.devrel.easypermissions.AppSettingsDialog
-import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 
+private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 
 @AndroidEntryPoint
 class DrivingFragment : Fragment(R.layout.driving_fragment),
-    EasyPermissions.PermissionCallbacks, OnMapReadyCallback {
+    OnMapReadyCallback {
 
-    private var isTracking = false
-    private var currentTimeInMillis = 0L
+    private val viewModel: DrivingViewModel by viewModels()
+
+    private var isTravelling = false
     private lateinit var binding: DrivingFragmentBinding
-    private var pathPoints = mutableListOf<LatLng>()
+    //private var pathPoints = mutableListOf<LatLng>()
     private var lastPointIx = 0
     //private val viewModel: MainViewModel by viewModels()
 
     private lateinit var mMap: GoogleMap
+
     // *** IMPORTANT ***
     // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
     // objects or sub-Bundles.
@@ -55,10 +58,13 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
+        isTravelling = false
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(BUNDLE_KEY_MAPVIEW)
             lastPointIx = savedInstanceState.getInt(BUNDLE_KEY_POINT_IX, 0)
         }
+        Log.d("OvO", "DrivingFragment onCreate")
+        viewModel.initService()
     }
 
     private val mapView
@@ -83,6 +89,8 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         savedInstanceState: Bundle?
     ): View? {
         setHasOptionsMenu(true)
+        Log.d("OvO", "DrivingFragment onCreateView")
+
         return super.onCreateView(inflater, container, savedInstanceState)
     }
 
@@ -92,17 +100,21 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         binding.mapView.onCreate(mapViewBundle)
         binding.mapView.getMapAsync(this)
         binding.buttonStartStop.setOnClickListener {
-            toggleRun()
+            if (viewModel.isTravelling.value != true) {
+                viewModel.startTracking()
+            } else if (viewModel.isTracking.value != true) {
+                viewModel.resumeTracking();
+            } else {
+                viewModel.pauseTracking()
+            }
         }
         binding.buttonTerminate.setOnClickListener {
-            stopTrackingService()
+            //viewModel.endTracking()
+            Timber.d("DrivingFragment goto endOfTripFragment")
+            viewModel.endTracking()
             findNavController().navigate(R.id.action_drivingFragment_to_endOfTripFragment)
         }
         requestPermissions()
-        Intent(requireContext(), TrackingService::class.java).also {
-            it.action = ACTION_INIT_LOCATION
-            requireContext().startService(it)
-        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -124,43 +136,34 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         super.onPrepareOptionsMenu(menu)
     }
 
-    private fun requestPermissions() {
-        if (TrackingUtility.hasLocationPermissions(requireContext())) {
-            return
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            EasyPermissions.requestPermissions(
-                this,
-                "You need to accept location permission to use this app",
-                REQUEST_CODE_LOCATION_PERMISSION,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        } else {
-            EasyPermissions.requestPermissions(
-                this,
-                "You need to accept location permissions to use this app",
-                REQUEST_CODE_LOCATION_PERMISSION,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            )
-        }
-    }
-
     override fun onDestroy() {
+        Log.d("OvO", "DrivingFragment onDestroy")
         mapView.onDestroy()
         super.onDestroy()
     }
 
+    override fun onStart() {
+        Log.d("OvO", "DrivingFragment onStart")
+        super.onStart()
+        updateButtonText()
+    }
+
     override fun onResume() {
+        Log.d("OvO", "DrivingFragment onResume")
         super.onResume()
         mapView.onResume()
     }
 
     override fun onPause() {
+        Log.d("OvO", "DrivingFragment onPause")
         super.onPause()
         mapView.onPause()
+    }
+
+    override fun onStop() {
+        Log.d("OvO", "DrivingFragment onStop")
+        viewModel.finishService()
+        super.onStop()
     }
     /**
      * Manipulates the map once available.
@@ -172,161 +175,203 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
+        Timber.d("DrivingFragment onMapReady")
         mMap = googleMap
 
         val uiSettings = mMap.uiSettings
         mMap.mapType = MAP_TYPE_NORMAL
         uiSettings.isZoomGesturesEnabled = true
         uiSettings.isZoomControlsEnabled = true
-
-        TrackingService.isTracking.observe(viewLifecycleOwner) {
-            updateTracking(it, TrackingService.isTraveling.value ?: false)
+        viewModel.isTracking.observe(viewLifecycleOwner) {
+            updateButtonText()
         }
 
-        TrackingService.isTraveling.observe(viewLifecycleOwner) {
+        lastPointIx = 0
+
+        viewModel.isTravelling.observe(viewLifecycleOwner) {
             if (it == false) {
                 mMap.clear()
             }
         }
 
-        TrackingService.pathPoints.observe(viewLifecycleOwner) {
-            pathPoints = it
-            addLatestPolyline()
-            moveCameraToUser(false)
+        viewModel.initLocation.addOnCompleteListener() {
+            if (it.result != null) {
+                moveCameraToUser(LatLng(it.result.latitude, it.result.longitude))
+            }
         }
 
-        TrackingService.timeRunInMillis.observe(viewLifecycleOwner) {
-            currentTimeInMillis = it as Long
-            val timeInSec = currentTimeInMillis / 1000
+        viewModel.pathPoints.observe(viewLifecycleOwner) {
+            addLatestPolyline(it)
+            if (viewModel.isTracking.value == true) {
+                moveCameraToUser(it)
+            }
+        }
+
+        viewModel.timeRunInSeconds.observe(viewLifecycleOwner) {
+            timeInSec ->
             binding.tvElapsed.text = "%02d:%02d:%02d".format(
                 timeInSec / 3600,
                 (timeInSec / 60) % 60,
-                timeInSec % 60)
+                timeInSec % 60
+            )
         }
 
-        TrackingService.distanceFromStartKm.observe(viewLifecycleOwner) {
+        viewModel.distanceFromStartKm.observe(viewLifecycleOwner) {
             binding.tvDistance.text = "%dkm".format(it.toInt())
         }
-
-        TrackingService.initLocation.observe(viewLifecycleOwner) {
-            if (it != null) {
-                val initPos = LatLng(it.latitude, it.longitude)
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initPos, MAP_ZOOM))
-            }
-        }
     }
+
     /**
      * Will move the camera to the user's location.
      */
-    private fun moveCameraToUser(zoom: Boolean=false) {
+    private fun moveCameraToUser(pathPoints: Polyline) {
         if (pathPoints.isNotEmpty()) {
             mMap.animateCamera(
-                if (zoom) {
-                    CameraUpdateFactory.newLatLngZoom(
-                        pathPoints.last(),
-                        MAP_ZOOM
-                    )
-                } else {
-                    CameraUpdateFactory.newLatLng(
-                        pathPoints.last(),
-                    )
-                }
+                CameraUpdateFactory.newLatLng(pathPoints.last())
             )
         }
     }
 
-    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+    private fun moveCameraToUser(latlng: LatLng) {
+        mMap.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(latlng, MAP_ZOOM)
+        )
     }
-
-    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
-        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            AppSettingsDialog.Builder(this).setThemeResId(R.style.AlertDialogTheme).build().show()
+    /**
+     * Updates the tracking variable and the UI accordingly
+     */
+    private fun updateButtonText() {
+        if (viewModel.isTracking.value == true) {
+            binding.buttonStartStop.text = getString(R.string.pause_text)
+            binding.buttonTerminate.visibility = View.GONE
         } else {
-            requestPermissions()
+            if (viewModel.isTravelling.value == true) {
+                binding.buttonStartStop.text = getString(R.string.resume_text)
+                binding.buttonTerminate.visibility = View.VISIBLE
+            } else {
+                binding.buttonStartStop.text = getString(R.string.start_text)
+                binding.buttonTerminate.visibility = View.GONE
+            }
         }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
     /**
      * Draws a polyline between the two latest points.
      */
-    private fun addLatestPolyline() {
+    private fun addLatestPolyline(pathPoints: Polyline) {
         // only add polyline if we have at least two elements in the last polyline
         if (pathPoints.isNotEmpty()) {
             Timber.d("OvO addLatestPolyline size=${pathPoints.size} ix=${lastPointIx}")
             if (lastPointIx >= pathPoints.size) {
-                Timber.d("    OvO cleared ${lastPointIx} > ${pathPoints.size}")
+                Timber.d("    OvO cleared ${lastPointIx} > $pathPoints.size")
                 lastPointIx = 0
                 Timber.d("OvO reset")
             }
             val polylineOptions = PolylineOptions()
                 .color(POLYLINE_COLOR)
                 .width(POLYLINE_WIDTH)
-            for (j in lastPointIx .. pathPoints.size - 1) {
+            for (j in lastPointIx until pathPoints.size) {
                 polylineOptions.add(pathPoints[j])
                 lastPointIx = j
             }
             mMap.addPolyline(polylineOptions)
         }
     }
+    /// MIGRATED
 
-    /**
-     * Updates the tracking variable and the UI accordingly
-     */
-    private fun updateTracking(isTracking: Boolean, isTraveling: Boolean) {
-        this.isTracking = isTracking
-        if (!isTracking) {
-            if (!isTraveling) {
-                binding.buttonStartStop.text = getString(R.string.start_text)
-                binding.buttonTerminate.visibility = View.GONE
-            } else {
-                binding.buttonStartStop.text = getString(R.string.restart_text)
-                binding.buttonTerminate.visibility = View.VISIBLE
-            }
-        } else if (isTracking) {
-            binding.buttonStartStop.text = getString(R.string.pause_text)
-            binding.buttonTerminate.visibility = View.GONE
-        }
+    // TODO: Step 1.0, Review Permissions: Method checks if permissions approved.
+    private fun foregroundPermissionApproved(): Boolean {
+        return PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
+            context!!,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
     }
 
-    @SuppressLint("MissingPermission")
-    private fun toggleRun() {
-        if (isTracking) {
-            pauseTrackingService()
+    // TODO: Step 1.0, Review Permissions: Method requests permissions.
+    private fun requestPermissions() {
+        val provideRationale = foregroundPermissionApproved()
+
+        // If the user denied a previous request, but didn't check "Don't ask again", provide
+        // additional rationale.
+        if (provideRationale) {
+            Snackbar.make(
+                view?.rootView!!,
+                R.string.permission_rationale,
+                Snackbar.LENGTH_LONG
+            )
+                .setAction(R.string.ok) {
+                    // Request permission
+                    ActivityCompat.requestPermissions(
+                        activity!!,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
+                    )
+                }
+                .show()
         } else {
-            startOrResumeTrackingService()
+            ActivityCompat.requestPermissions(
+                activity!!,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
+            )
         }
     }
-    /**
-     * Starts the tracking service or resumes it if it is currently paused.
-     */
-    private fun startOrResumeTrackingService() =
-        Intent(requireContext(), TrackingService::class.java).also {
-            it.action = ACTION_START_OR_RESUME_SERVICE
-            requireContext().startService(it)
+
+    // TODO: Step 1.0, Review Permissions: Handles permission result.
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE -> when {
+                //grantResults.isEmpty() ->
+                    // If user interaction was interrupted, the permission request
+                    // is cancelled and you receive empty arrays.
+                    //Log.d(TAG, "User interaction was cancelled.")
+
+                grantResults[0] == PackageManager.PERMISSION_GRANTED ->
+                    // Permission was granted.
+                    viewModel.startTracking()
+
+                else -> {
+                    // Permission denied.
+                    updateButtonText()
+
+                    Snackbar.make(
+                        view?.rootView!!,
+                        R.string.permission_denied_explanation,
+                        Snackbar.LENGTH_LONG
+                    )
+                        .setAction(R.string.settings) {
+                            // Build intent that displays the App settings screen.
+                            val intent = Intent()
+                            intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            val uri = Uri.fromParts(
+                                "package",
+                                BuildConfig.APPLICATION_ID,
+                                null
+                            )
+                            intent.data = uri
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            startActivity(intent)
+                        }
+                        .show()
+                }
+            }
         }
+    }
 
     /**
-     * Pauses the tracking service
+     * Receiver for location broadcasts from [ForegroundOnlyLocationService].
      */
-    private fun pauseTrackingService() =
-        Intent(requireContext(), TrackingService::class.java).also {
-            it.action = ACTION_PAUSE_SERVICE
-            requireContext().startService(it)
+    /*
+    private inner class ForegroundOnlyBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val location = intent.getParcelableExtra<Location>(
+                ForegroundOnlyLocationService.EXTRA_LOCATION
+            )
         }
-
-    /**
-     * Stops the tracking service.
-     */
-    private fun stopTrackingService() =
-        Intent(requireContext(), TrackingService::class.java).also {
-            it.action = ACTION_STOP_SERVICE
-            requireContext().startService(it)
-        }
+    }
+    */
 }
+

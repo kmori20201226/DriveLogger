@@ -9,8 +9,11 @@ import com.kmoriproj.drivelogger.common.Constants
 import com.kmoriproj.drivelogger.ui.MapsActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.kmoriproj.drivelogger.common.GPSTracker
+import com.kmoriproj.drivelogger.repositories.LocationRepository
+import com.kmoriproj.drivelogger.repositories.SharedLocationManager
 import com.kmoriproj.drivelogger.repositories.TrajectoryRepository
 import com.kmoriproj.drivelogger.repositories.TripRepository
+import com.kmoriproj.drivelogger.services.ForegroundOnlyLocationService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,7 +52,7 @@ object ServiceModule {
     @Provides
     fun provideActivityPendingIntent(
         @ApplicationContext context: Context
-    ) =
+    ): PendingIntent =
         PendingIntent.getActivity(
             context,
             0,
@@ -58,4 +61,5 @@ object ServiceModule {
             },
             PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE
         )
+
 }

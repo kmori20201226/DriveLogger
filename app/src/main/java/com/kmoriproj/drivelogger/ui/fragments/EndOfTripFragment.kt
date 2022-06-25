@@ -1,17 +1,13 @@
 package com.kmoriproj.drivelogger.ui.fragments
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.kmoriproj.drivelogger.EndOfTripViewModel
 import com.kmoriproj.drivelogger.R
-import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
 import com.kmoriproj.drivelogger.databinding.FragmentEndOfTripBinding
+import com.kmoriproj.drivelogger.ui.DrivingViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
@@ -24,23 +20,25 @@ class EndOfTripFragment : Fragment(R.layout.fragment_end_of_trip) {
     }
 
     private lateinit var binding: FragmentEndOfTripBinding
-    private val viewModel: EndOfTripViewModel by viewModels()
 
-    val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    private val viewModel: DrivingViewModel by viewModels()
+
+    private val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentEndOfTripBinding.bind(view)
         binding.btnSave.setOnClickListener {
+            viewModel.endTrip()
+            viewModel.saveTrip()
             viewModel.liveCurrentTrip.value?.caption = binding.txComments.text?.toString()!!
-            viewModel.finishTrip()
             findNavController().navigate(R.id.action_endOfTripFragment_to_tripsFragment)
-            //activity?.onBackPressed()
         }
         fun formatTime(t:Long): String {
             val s = Date(t)
             return timestampFormat.format(s)
         }
+        viewModel.flush()
         viewModel.liveCurrentTrip.observe(viewLifecycleOwner) {
             with( viewModel.liveCurrentTrip.value ) {
                 binding.tvStartTime.text = formatTime(it.startTime)

@@ -28,7 +28,6 @@ class GPSTracker @Inject constructor(
     val liveCurrentTrip: MutableLiveData<Trip> = MutableLiveData<Trip>(currentTrip)
     //val liveCurrentTrip: LiveData<Trip> = _liveCurrentTrip
 
-    private var writer: CsvFileWriter? = null
     private val trajBuf = mutableListOf<TrajPoint>()
     private val trajBufSpill = 100
     val job = Job()
@@ -38,61 +37,24 @@ class GPSTracker @Inject constructor(
     val distanceFromStartKm
         get() = (currentTrip?.distanceFromStart ?: 0.0f) / 1000.0f
     fun reset() {
-        writer?.close()
-        writer = null
         trajBuf.clear()
         lastPos = null
         //locationList.clear()
     }
-    private fun openDumpfile() {
-        val dir = File(Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_DOCUMENTS).absolutePath + "/DriveLogger")
-        dir.mkdirs()
-        val now = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        val file = File(dir, "location-dump-%s.csv".format(now))
-        @OptIn(KotlinCsvExperimental::class)
-        writer = csvWriter().openAndGetRawWriter(file)
-        writer?.writeRow(header())
-    }
-    private fun header(): List<String> {
-        return listOf(
-            "time",
-            "hasAccuracy",
-            "accuracy",
-            "hasAltitude",
-            "altitude",
-            "hasBearing",
-            "bearing",
-            "hasBearingAccuracy",
-            "bearingAccuracyDegrees",
-            "hasElapsedRealtimeUncertaintyNanos",
-            "elapsedRealtimeUncertaintyNanos",
-            "elapsedRealtimeNanos",
-            "elapsedRealtimeUncertaintyNanos",
-            "latitude",
-            "longitude",
-            "provider",
-            "hasSpeed",
-            "speed",
-            "hasSpeedAccuracy",
-            "speedAccuracyMetersPerSecond",
-            "hasVerticalAccuracy",
-            "verticalAccuracyMeters",
-        )
-    }
     fun startTrip() {
         currentTrip = Trip()
-        liveCurrentTrip.value = currentTrip
+        liveCurrentTrip.postValue(currentTrip)
         coroutinesScope.launch {
             val id = tripRepository.insertTrip(currentTrip!!)
             currentTrip?.id = id
             Timber.d("Trip added " + id.toString())
         }
     }
-    fun finishTrip() {
+    fun saveTrip() {
         coroutinesScope.launch {
+            flush()
             tripRepository.insertTrip(currentTrip!!)
-            Timber.d("Trip updated")
+            Timber.d("Trip save")
         }
     }
     fun flush() {
@@ -114,33 +76,6 @@ class GPSTracker @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.Q)
     fun addLocation(loc: Location) : Boolean {
         val pos = LatLng(loc.latitude, loc.longitude)
-        val row = listOf(
-            loc.time,
-            loc.hasAccuracy(),
-            loc.accuracy,
-            loc.hasAltitude(),
-            loc.altitude,
-            loc.hasBearing(),
-            loc.bearing,
-            loc.hasBearingAccuracy(),
-            loc.bearingAccuracyDegrees,
-            loc.hasElapsedRealtimeUncertaintyNanos(),
-            loc.elapsedRealtimeUncertaintyNanos,
-            loc.elapsedRealtimeNanos,
-            loc.elapsedRealtimeUncertaintyNanos,
-            loc.latitude,
-            loc.longitude,
-            loc.provider,
-            loc.hasSpeed(),
-            loc.speed,
-            loc.hasSpeedAccuracy(),
-            loc.speedAccuracyMetersPerSecond,
-            loc.hasVerticalAccuracy(),
-            loc.verticalAccuracyMeters,
-        )
-        if (writer == null) {
-            openDumpfile()
-        }
         if (currentTrip?.startTime == 0L) {
             currentTrip?.startTime = loc.time
         }
@@ -149,7 +84,6 @@ class GPSTracker @Inject constructor(
         if (trajBuf.size >= trajBufSpill) {
             flush()
         }
-        writer?.writeRow(row)
         if (lastPos == null) {
             lastPos = pos
             //locationList.add(loc)
@@ -167,17 +101,10 @@ class GPSTracker @Inject constructor(
                 currentTrip?.let {
                     it.distanceFromStart += distanceInMeter
                 }
-                liveCurrentTrip.value = currentTrip
+                liveCurrentTrip.postValue(currentTrip)
                 return true
             }
         }
         return false
-    }
-    fun close() {
-        writer?.close()
-        writer = null
-    }
-    protected fun finalize() {
-        close()
     }
 }
