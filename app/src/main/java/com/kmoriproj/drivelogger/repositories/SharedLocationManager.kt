@@ -13,6 +13,7 @@ import com.google.android.gms.tasks.Task
 import com.kmoriproj.drivelogger.BaseApplication
 import com.kmoriproj.drivelogger.common.Constants.Companion.FASTEST_LOCATION_UPDATE_INTERVAL
 import com.kmoriproj.drivelogger.common.Constants.Companion.LOCATION_UPDATE_INTERVAL
+import com.kmoriproj.drivelogger.common.CurrentLocation
 import com.kmoriproj.drivelogger.common.GPSTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,16 +57,12 @@ class SharedLocationManager(
     }
     @ExperimentalCoroutinesApi
     @SuppressLint("MissingPermission")
-    private var _locationFlow = callbackFlow<Location> {
+    private var _locationFlow = callbackFlow<CurrentLocation> {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 Timber.d("Location change received")
-                val loc = result.lastLocation
-                if (gps.addLocation(loc) || true) {
-                    val x = trySend(loc)
-                    if (x.isFailure) {
-                        Timber.d("trySend failure")
-                    }
+                gps.addLocation(result.lastLocation)?.also {
+                    trySend(it)
                 }
             }
         }
@@ -92,9 +89,9 @@ class SharedLocationManager(
     )
 
     @ExperimentalCoroutinesApi
-    val locationFlow: Flow<Location>
+    val locationFlow: Flow<CurrentLocation>
         get() = _locationFlow
 
-    val lastLocation: Task<Location>
-        get() = fusedLocationProviderClient.lastLocation
+    fun getLastLocation(): Task<Location>
+         = fusedLocationProviderClient.lastLocation
 }

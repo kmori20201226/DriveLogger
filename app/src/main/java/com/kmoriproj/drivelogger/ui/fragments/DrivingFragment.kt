@@ -88,7 +88,6 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        setHasOptionsMenu(true)
         Log.d("OvO", "DrivingFragment onCreateView")
 
         return super.onCreateView(inflater, container, savedInstanceState)
@@ -98,6 +97,13 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         super.onViewCreated(view, savedInstanceState)
         binding = DrivingFragmentBinding.bind(view)
         binding.mapView.onCreate(mapViewBundle)
+        if (foregroundPermissionApproved()) {
+            viewModel.getLastLocation().addOnCompleteListener() {
+                if (it.result != null) {
+                    moveCameraToUser(LatLng(it.result.latitude, it.result.longitude))
+                }
+            }
+        }
         binding.mapView.getMapAsync(this)
         binding.buttonStartStop.setOnClickListener {
             if (viewModel.isTravelling.value != true) {
@@ -194,12 +200,6 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             }
         }
 
-        viewModel.initLocation.addOnCompleteListener() {
-            if (it.result != null) {
-                moveCameraToUser(LatLng(it.result.latitude, it.result.longitude))
-            }
-        }
-
         viewModel.pathPoints.observe(viewLifecycleOwner) {
             addLatestPolyline(it)
             if (viewModel.isTracking.value == true) {
@@ -217,7 +217,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         }
 
         viewModel.distanceFromStartKm.observe(viewLifecycleOwner) {
-            binding.tvDistance.text = "%dkm".format(it.toInt())
+            binding.tvDistance.text = "%.1fkm".format(it)
         }
     }
 
@@ -233,7 +233,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     }
 
     private fun moveCameraToUser(latlng: LatLng) {
-        mMap.animateCamera(
+        mMap.moveCamera(
             CameraUpdateFactory.newLatLngZoom(latlng, MAP_ZOOM)
         )
     }
@@ -241,6 +241,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
      * Updates the tracking variable and the UI accordingly
      */
     private fun updateButtonText() {
+        var showMenu = false
         if (viewModel.isTracking.value == true) {
             binding.buttonStartStop.text = getString(R.string.pause_text)
             binding.buttonTerminate.visibility = View.GONE
@@ -249,10 +250,12 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                 binding.buttonStartStop.text = getString(R.string.resume_text)
                 binding.buttonTerminate.visibility = View.VISIBLE
             } else {
+                showMenu = true
                 binding.buttonStartStop.text = getString(R.string.start_text)
                 binding.buttonTerminate.visibility = View.GONE
             }
         }
+        setHasOptionsMenu(showMenu)
     }
     /**
      * Draws a polyline between the two latest points.
@@ -293,6 +296,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         // If the user denied a previous request, but didn't check "Don't ask again", provide
         // additional rationale.
         if (provideRationale) {
+
             Snackbar.make(
                 view?.rootView!!,
                 R.string.permission_rationale,
