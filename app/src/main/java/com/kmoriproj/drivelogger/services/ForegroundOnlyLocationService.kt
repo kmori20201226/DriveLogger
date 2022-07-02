@@ -245,14 +245,14 @@ class ForegroundOnlyLocationService : LifecycleService() {
             .setStyle(bigTextStyle)
             .setContentTitle(titleText)
             .setContentText(mainNotificationText)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_directions_car_48px)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .addAction(
-                R.drawable.ic_launch, getString(R.string.launch_activity),
-                activityPendingIntent
-            )
+//            .addAction(
+//                R.drawable.ic_launch, getString(R.string.launch_activity),
+//                activityPendingIntent
+//            )
             .build()
     }
 
