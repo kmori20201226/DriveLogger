@@ -22,7 +22,9 @@ class Constants {
         const val FASTEST_LOCATION_UPDATE_INTERVAL = 2000L
 
         // Map Options
-        const val POLYLINE_COLOR = Color.RED
+        const val POLYLINE_COLOR1 = Color.RED
+        const val POLYLINE_COLOR2 = Color.YELLOW
+        const val POLYLINE_COLOR3 = Color.BLUE
         const val POLYLINE_WIDTH = 8f
         const val MAP_ZOOM = 15f
 

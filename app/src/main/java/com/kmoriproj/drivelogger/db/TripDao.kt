@@ -11,6 +11,9 @@ interface TripDao {
     @Delete
     suspend fun deleteTrip(Trip: Trip)
 
+    @Query("SELECT * FROM trip WHERE id = :tripId")
+    fun getTrip(tripId: Long) : LiveData<Trip>
+
     @Query("SELECT * FROM trip ORDER BY startTime DESC")
     fun getAllTripsByDate(): LiveData<List<Trip>>
 

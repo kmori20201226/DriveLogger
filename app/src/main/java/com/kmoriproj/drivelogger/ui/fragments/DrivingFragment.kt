@@ -25,7 +25,8 @@ import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_MAPVIEW
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_POINT_IX
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAP_ZOOM
-import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR
+import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR1
+import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR2
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
 import com.kmoriproj.drivelogger.common.Polyline
 import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
@@ -227,7 +228,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     private fun moveCameraToUser(pathPoints: Polyline) {
         if (pathPoints.isNotEmpty()) {
             mMap.animateCamera(
-                CameraUpdateFactory.newLatLng(pathPoints.last())
+                CameraUpdateFactory.newLatLng(pathPoints.last().latlng)
             )
         }
     }
@@ -269,14 +270,29 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                 lastPointIx = 0
                 Timber.d("OvO reset")
             }
-            val polylineOptions = PolylineOptions()
-                .color(POLYLINE_COLOR)
-                .width(POLYLINE_WIDTH)
-            for (j in lastPointIx until pathPoints.size) {
-                polylineOptions.add(pathPoints[j])
-                lastPointIx = j
+            var lastPos = pathPoints[lastPointIx++].latlng
+            while (lastPointIx < pathPoints.size) {
+                val listPts = mutableListOf<LatLng>()
+                var color = pathPoints[lastPointIx].color
+                var debugstr = ""
+                debugstr += "${lastPointIx-1}, "
+                listPts.add(lastPos)
+                while (lastPointIx < pathPoints.size && color == pathPoints[lastPointIx].color) {
+                    lastPos = pathPoints[lastPointIx++].latlng
+                    debugstr += "${lastPointIx-1}, "
+                    listPts.add(lastPos)
+                }
+                val colorstr = if (color == POLYLINE_COLOR1) "RED" else if (color == POLYLINE_COLOR2) "yellow" else "blue"
+                Timber.d("OvO ${colorstr} ${debugstr}")
+                PolylineOptions()
+                    .color(color)
+                    .width(POLYLINE_WIDTH)
+                    .addAll(listPts)
+                    .also {
+                        mMap.addPolyline(it)
+                    }
             }
-            mMap.addPolyline(polylineOptions)
+            lastPointIx--
         }
     }
     /// MIGRATED

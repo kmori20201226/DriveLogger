@@ -13,6 +13,7 @@ import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants
 import com.kmoriproj.drivelogger.common.GPSTracker
 import com.kmoriproj.drivelogger.common.Polyline
+import com.kmoriproj.drivelogger.common.RichPoint
 import com.kmoriproj.drivelogger.services.SharedPreferenceUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
@@ -48,7 +49,7 @@ class LocationRepository @Inject constructor(
         locationFlowJob =
             sharedLocationManager.locationFlow
                 .onEach {
-                    _pathPoints.value?.add(it.latlng)
+                    _pathPoints.value?.add(RichPoint.makeFrom(it, pathPoints.value!!))
                     _pathPoints.postValue(_pathPoints.value)
                     _distanceFromStartKm.postValue(gpsTracker.distanceFromStartKm)
                 }

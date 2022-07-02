@@ -14,6 +14,8 @@ constructor(
 
     suspend fun deleteTrip(trip: Trip) = tripDao.deleteTrip(trip)
 
+    fun getTrip(tripId: Long) = tripDao.getTrip(tripId)
+
     fun getAllTripsByDate() = tripDao.getAllTripsByDate()
 
     fun getAllTripsByStartTime() = tripDao.getAllTripsByStartTime()

@@ -19,6 +19,7 @@ class TripViewModel @Inject constructor(
     private val tripsSortedByStartTime = tripRepository.getAllTripsByStartTime()
     private val tripsSortedByFarest = tripRepository.getAllTripsByFarest()
     private val tripsSortedByNearest = tripRepository.getAllTripsByNearest()
+
     val trips = MediatorLiveData<List<Trip>>()
 
     var sortType = SortType.DATE

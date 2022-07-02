@@ -217,7 +217,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
             val notificationChannel = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID, titleText, NotificationManager.IMPORTANCE_DEFAULT)
+                NOTIFICATION_CHANNEL_ID, titleText, NotificationManager.IMPORTANCE_LOW)
 
             // Adds NotificationChannel to system. Attempting to create an
             // existing notification channel with its original values performs

@@ -61,11 +61,16 @@ class TripsAdapter(val clickListener: (Trip)->Unit) : RecyclerView.Adapter<Trips
         // set item data
         binding = ItemTripBinding.bind(holder.itemView)
         holder.itemView.apply {
+            binding.tvComment.text = trip.caption
             //Glide.with(this).load(run.img).into(ivRunImage)
             val dateFormat = SimpleDateFormat("yy/MM/dd", Locale.getDefault())
+            val t = (trip.endTime - trip.startTime) / (60L * 1000L)
+            val travelMin = "%dmin".format(t % 60)
+            val h = t / 60
+            val travelHour =  if (h > 0) "%dhr ".format(h) else ""
             binding.tvDate.text = dateFormat.format(trip.startTime)
             val timeFormat = SimpleDateFormat("hh:mm", Locale.getDefault())
-            binding.tvTime.text = timeFormat.format(trip.startTime)
+            binding.tvTime.text = travelHour + travelMin
             "%.1fkm".format(trip.distanceFromStart / 1000.0).also {
                 binding.tvDistance.text = it
             }

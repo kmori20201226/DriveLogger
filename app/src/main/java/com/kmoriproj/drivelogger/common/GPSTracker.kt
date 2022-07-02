@@ -25,12 +25,14 @@ class GPSTracker @Inject constructor(
     val job = Job()
     val coroutinesScope: CoroutineScope = CoroutineScope(job + Dispatchers.IO)
     var lastPos: LatLng? = null
+    var lastTick: Long? = null
     //val locationList = mutableListOf<Location>()
     val distanceFromStartKm
         get() = (currentTrip?.distanceFromStart ?: 0.0f) / 1000.0f
     fun reset() {
         trajBuf.clear()
         lastPos = null
+        lastTick = null
         //locationList.clear()
     }
     fun startTrip() {
@@ -78,10 +80,14 @@ class GPSTracker @Inject constructor(
         }
         if (lastPos == null) {
             lastPos = pos
+            lastTick = loc.time
             return CurrentLocation(
+                time = loc.time,
                 latlng = pos,
                 travelDistance = 0.0f,
-                travelTime = 0
+                travelTime = 0,
+                distanceInMeter = 0.0f,
+                timeSpan = 0
             )
         } else {
             val result = FloatArray(1)
@@ -91,16 +97,21 @@ class GPSTracker @Inject constructor(
                 result)
             val distanceInMeter = result[0]
             if (distanceInMeter >= 2.0) {
-                lastPos = pos
                 currentTrip?.let {
                     it.distanceFromStart += distanceInMeter
                 }
                 liveCurrentTrip.postValue(currentTrip)
                 return CurrentLocation(
+                    time = loc.time,
                     latlng = pos,
                     travelDistance = currentTrip?.distanceFromStart ?: 0.0f,
-                    travelTime = loc.time - (currentTrip?.startTime ?: loc.time)
-                )
+                    travelTime = loc.time - (currentTrip?.startTime ?: loc.time),
+                    distanceInMeter = distanceInMeter,
+                    timeSpan = loc.time - lastTick!!
+                ).also {
+                    lastPos = pos
+                    lastTick = loc.time
+                }
             }
         }
         return null
