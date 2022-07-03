@@ -19,5 +19,7 @@ class TrajectoryRepository @Inject constructor(
 
     fun getTrajectoriesOfTrip(tripId: Long) = trajectoryDao.getTrajectoriesOfTrip(tripId)
 
+    suspend fun getBlockedTrajectoriesOfTrip(tripId: Long) = trajectoryDao.getBlockedTrajectoriesOfTrip(tripId)
+
     fun getAllTrajectories() = trajectoryDao.getAllTrajectories()
 }

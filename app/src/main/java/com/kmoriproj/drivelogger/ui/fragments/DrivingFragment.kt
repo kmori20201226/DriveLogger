@@ -380,18 +380,5 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             }
         }
     }
-
-    /**
-     * Receiver for location broadcasts from [ForegroundOnlyLocationService].
-     */
-    /*
-    private inner class ForegroundOnlyBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val location = intent.getParcelableExtra<Location>(
-                ForegroundOnlyLocationService.EXTRA_LOCATION
-            )
-        }
-    }
-    */
 }
 

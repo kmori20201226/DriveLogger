@@ -44,6 +44,7 @@ class Constants {
         const val KEY_NAME = "KEY_NAME"
         const val KEY_WEIGHT = "KEY_WEIGHT"
         const val KEY_FIRST_TIME_TOGGLE = "KEY_FIRST_TIME_TOGGLE"
+        const val KEY_DR_SERVER_URL = "DR_SERVER_URL"
 
         // Service Intent Actions
         const val ACTION_INIT_LOCATION = "ACTION_INIT_LOCATION"

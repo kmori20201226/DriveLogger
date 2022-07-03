@@ -16,6 +16,9 @@ abstract class TrajectoryDao {
     @Query("SELECT * FROM trajectories WHERE tripId = :tripId ORDER BY startTime ASC")
     abstract fun getTrajectoriesOfTrip(tripId: Long): Flow<List<Trajectory>>
 
+    @Query("SELECT * FROM trajectories WHERE tripId = :tripId ORDER BY startTime ASC")
+    abstract suspend fun getBlockedTrajectoriesOfTrip(tripId: Long): List<Trajectory>
+
     @Query("SELECT * FROM trajectories ORDER BY tripId ASC, startTime ASC")
     abstract fun getAllTrajectories(): Flow<List<Trajectory>>
 }

@@ -13,7 +13,12 @@ import com.kmoriproj.drivelogger.db.Trip
 import java.text.SimpleDateFormat
 import java.util.*
 
-class TripsAdapter(val clickListener: (Trip)->Unit) : RecyclerView.Adapter<TripsAdapter.TripsViewHolder>()  {
+class TripsAdapter(val clickListener: (Int,Trip)->Unit) : RecyclerView.Adapter<TripsAdapter.TripsViewHolder>()  {
+
+    companion object {
+        val subActionDefault = 0   // Item click
+        val subActionUpload = 1    // Upload click
+    }
 
     private val diffCallback = object : DiffUtil.ItemCallback<Trip>() {
         override fun areItemsTheSame(oldItem: Trip, newItem: Trip): Boolean {
@@ -45,7 +50,7 @@ class TripsAdapter(val clickListener: (Trip)->Unit) : RecyclerView.Adapter<Trips
                 parent,
                 false
             ), {
-                clickListener(differ.currentList[it])
+                clickListener(subActionDefault, differ.currentList[it])
             }
         )
     }
@@ -73,6 +78,9 @@ class TripsAdapter(val clickListener: (Trip)->Unit) : RecyclerView.Adapter<Trips
             binding.tvTime.text = travelHour + travelMin
             "%.1fkm".format(trip.distanceFromStart / 1000.0).also {
                 binding.tvDistance.text = it
+            }
+            binding.buttonUpload.setOnClickListener {
+                clickListener(subActionUpload, differ.currentList[position])
             }
         }
     }

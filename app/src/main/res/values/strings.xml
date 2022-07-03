@@ -25,4 +25,10 @@
     <string name="ok">OK</string>
     <string name="no_location_text">No current location</string>
     <string name="resume_text">Resume</string>
+    <string name="default_dr_server_url">http://192.168.10.115:8880/log-data/</string>
+    <string name="default_dr_server_url1">http://10.0.2.2:8880/log-data/</string>
+    <string name="server_url_unknown">Please set server-url!!</string>
+    <string name="upload_succeeded">Trip data uploaded</string>
+    <string name="upload_server_error">Server rejected upload data</string>
+    <string name="network_error">Network problem</string>
 </resources>
