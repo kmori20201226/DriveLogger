@@ -9,5 +9,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="my_favorite_blue">#FF7090f0</color>
     <color name="my_favorite_blue_variant">#FF406090</color>
+    <color name="lemon">#CDDC39</color>
     <color name="colorControlNormal">#FFFFFFFF</color>
 </resources>

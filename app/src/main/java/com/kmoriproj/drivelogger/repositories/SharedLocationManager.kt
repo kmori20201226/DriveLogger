@@ -61,7 +61,7 @@ class SharedLocationManager(
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 Timber.d("Location change received")
-                gps.addLocation(result.lastLocation)?.also {
+                gps.addLocation(result.lastLocation!!)?.also {
                     trySend(it)
                 }
             }

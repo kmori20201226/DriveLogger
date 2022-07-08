@@ -4,14 +4,15 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "trip")
-data class Trip(
-    var startTime: Long = 0,
-    var endTime: Long = 0,
-    var caption: String = "",
-    var bbox: BoundingBox? = null,
-    var distanceFromStart: Float = 0.0f,
-    var numDataPoints: Int = 0
+data class Trip constructor (
+    var startTime: Long,
+    var endTime: Long,
+    var caption: String,
+    var bbox: BoundingBox?,
+    var distanceFromStart: Float,
+    var numDataPoints: Int
 ) {
+    constructor() : this(0, 0, "", null, 0.0f, 0)
     @PrimaryKey(autoGenerate = true)
     var id: Long? = null
 }

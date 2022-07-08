@@ -27,7 +27,7 @@ class MapsActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
-        // setContentView(R.layout.activity_main)
+//        setContentView(R.layout.activity_main)
 //        if (savedInstanceState == null) {
 //            supportFragmentManager.beginTransaction()
 //                .replace(R.id.navHostFragment, DrivingFragment.newInstance())

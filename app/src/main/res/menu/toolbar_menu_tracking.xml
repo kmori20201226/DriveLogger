@@ -8,5 +8,9 @@
         android:title="@string/show_trips"
         android:visible="true"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/miConfigure"
+        android:icon="@drawable/ic_settings"
+        android:title="Configure" />
 
 </menu>

@@ -5,12 +5,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootView"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.MapsActivity">
+    android:layout_height="match_parent">
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
+        android:layout_weight="0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,7 +20,8 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_weight="0">
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tvToolbarTitle"
@@ -43,7 +45,7 @@
                 app:layout_constraintStart_toEndOf="@id/tvToolbarTitle"
                 app:layout_constraintBottom_toBottomOf="@id/tvToolbarTitle"
                 android:textColor="@android:color/white"
-                android:textSize="10sp"
+                android:textSize="50sp"
                 android:text="v0.1" />
 
         </com.google.android.material.appbar.MaterialToolbar>

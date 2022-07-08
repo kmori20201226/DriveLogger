@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
+import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -65,6 +66,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             lastPointIx = savedInstanceState.getInt(BUNDLE_KEY_POINT_IX, 0)
         }
         Log.d("OvO", "DrivingFragment onCreate")
+        setHasOptionsMenu(true)
         viewModel.initService()
     }
 
@@ -128,6 +130,9 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         when (item.itemId) {
             R.id.miTripList -> {
                 findNavController().navigate(R.id.action_drivingFragment_to_tripsFragment)
+            }
+            R.id.miConfigure -> {
+                findNavController().navigate(R.id.action_global_settingsFragment)
             }
         }
         return super.onOptionsItemSelected(item)
@@ -242,7 +247,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
      * Updates the tracking variable and the UI accordingly
      */
     private fun updateButtonText() {
-        var showMenu = false
+        var showTripList = false
         if (viewModel.isTracking.value == true) {
             binding.buttonStartStop.text = getString(R.string.pause_text)
             binding.buttonTerminate.visibility = View.GONE
@@ -251,12 +256,12 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                 binding.buttonStartStop.text = getString(R.string.resume_text)
                 binding.buttonTerminate.visibility = View.VISIBLE
             } else {
-                showMenu = true
+                showTripList = true
                 binding.buttonStartStop.text = getString(R.string.start_text)
                 binding.buttonTerminate.visibility = View.GONE
             }
         }
-        setHasOptionsMenu(showMenu)
+        menu?.findItem(R.id.miTripList)?.setVisible(showTripList)
     }
     /**
      * Draws a polyline between the two latest points.
@@ -337,48 +342,48 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     }
 
     // TODO: Step 1.0, Review Permissions: Handles permission result.
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE -> when {
-                //grantResults.isEmpty() ->
-                    // If user interaction was interrupted, the permission request
-                    // is cancelled and you receive empty arrays.
-                    //Log.d(TAG, "User interaction was cancelled.")
-
-                grantResults[0] == PackageManager.PERMISSION_GRANTED ->
-                    // Permission was granted.
-                    viewModel.startTracking()
-
-                else -> {
-                    // Permission denied.
-                    updateButtonText()
-
-                    Snackbar.make(
-                        view?.rootView!!,
-                        R.string.permission_denied_explanation,
-                        Snackbar.LENGTH_LONG
-                    )
-                        .setAction(R.string.settings) {
-                            // Build intent that displays the App settings screen.
-                            val intent = Intent()
-                            intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                            val uri = Uri.fromParts(
-                                "package",
-                                BuildConfig.APPLICATION_ID,
-                                null
-                            )
-                            intent.data = uri
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            startActivity(intent)
-                        }
-                        .show()
-                }
-            }
-        }
-    }
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<String>,
+//        grantResults: IntArray
+//    ) {
+//        when (requestCode) {
+//            REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE -> when {
+//                //grantResults.isEmpty() ->
+//                    // If user interaction was interrupted, the permission request
+//                    // is cancelled and you receive empty arrays.
+//                    //Log.d(TAG, "User interaction was cancelled.")
+//
+//                grantResults[0] == PackageManager.PERMISSION_GRANTED ->
+//                    // Permission was granted.
+//                    viewModel.startTracking()
+//
+//                else -> {
+//                    // Permission denied.
+//                    updateButtonText()
+//
+//                    Snackbar.make(
+//                        view?.rootView!!,
+//                        R.string.permission_denied_explanation,
+//                        Snackbar.LENGTH_LONG
+//                    )
+//                        .setAction(R.string.settings) {
+//                            // Build intent that displays the App settings screen.
+//                            val intent = Intent()
+//                            intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+//                            val uri = Uri.fromParts(
+//                                "package",
+//                                BuildConfig.APPLICATION_ID,
+//                                null
+//                            )
+//                            intent.data = uri
+//                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+//                            startActivity(intent)
+//                        }
+//                        .show()
+//                }
+//            }
+//        }
+//    }
 }
 
