@@ -11,6 +11,10 @@
     <item
         android:id="@+id/miConfigure"
         android:icon="@drawable/ic_settings"
-        android:title="Configure" />
+        android:visible="true"
+        android:title="Configure"
+        android:checkable="true"
+        android:checked="true"
+        app:showAsAction="withText" />
 
 </menu>

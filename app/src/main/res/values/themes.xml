@@ -26,4 +26,10 @@
     <style name="PositiveButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="android:textColor">@color/colorAccent</item>
     </style>
+    <style name="ToolBarStyle" parent="ThemeOverlay.MaterialComponents.Toolbar.Surface">
+        <item name="android:itemBackground">#cfc</item>  // background color of the menus
+        <item name="android:textColor">#000</item>// text color of the  menus
+        <item name="android:textColorSecondary">#00f</item>
+    </style>
+
 </resources>

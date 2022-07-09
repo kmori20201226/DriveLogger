@@ -20,13 +20,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TrajectoryViewModel @Inject constructor(
+class ReviewViewModel @Inject constructor(
     val trajectoryRepository: TrajectoryRepository,
     val tripRepository: TripRepository
 ) : ViewModel() {
 
     private val _points = MutableLiveData<List<RichPoint>>()
     val points: LiveData<List<RichPoint>> = _points
+    private val _currentTrip = MutableLiveData<Trip>()
+    val currentTrip: LiveData<Trip> = _currentTrip
 
     private fun trajPointList2CurrentLocationList(
         trpRec: Trip,
@@ -80,6 +82,7 @@ class TrajectoryViewModel @Inject constructor(
     fun getTrip(tripId: Long, owner: LifecycleOwner) {
         tripRepository.getTrip(tripId).observe(owner) {
             tripRec ->
+            _currentTrip.postValue(tripRec)
             viewModelScope.launch {
                 val trajFlow = trajectoryRepository.getTrajectoriesOfTrip(tripId)
                 trajFlow.collect {

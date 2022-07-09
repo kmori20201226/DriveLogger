@@ -15,17 +15,20 @@ import com.kmoriproj.drivelogger.common.Constants
 import com.kmoriproj.drivelogger.common.Constants.Companion.ARGKEY_CURRENT_TRIPID
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR1
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
+import com.kmoriproj.drivelogger.common.DateTimeString
 import com.kmoriproj.drivelogger.common.RichPoint
 import com.kmoriproj.drivelogger.databinding.ReviewFragmentBinding
-import com.kmoriproj.drivelogger.ui.TrajectoryViewModel
+import com.kmoriproj.drivelogger.ui.ReviewViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class ReviewFragment : Fragment(R.layout.review_fragment),
     OnMapReadyCallback {
 
-    private val trajectoryViewModel: TrajectoryViewModel by viewModels()
+    private val reviewViewModel: ReviewViewModel by viewModels()
 
     private lateinit var binding: ReviewFragmentBinding
 
@@ -43,9 +46,19 @@ class ReviewFragment : Fragment(R.layout.review_fragment),
         binding = ReviewFragmentBinding.bind(view)
         binding.mapView.onCreate(mapViewBundle)
         binding.mapView.getMapAsync(this)
-        trajectoryViewModel.points.observe(viewLifecycleOwner) {
+        reviewViewModel.points.observe(viewLifecycleOwner) {
             zoomToWholeTrack(it)
             addAllPoints(it)
+        }
+        reviewViewModel.currentTrip.observe(viewLifecycleOwner) {
+            val caption = it.caption
+            val dist = "%.1fkm".format(it.distanceFromStart / 1000)
+            val startDt = DateTimeString.formatDate(it.startTime)
+            if (caption == "") {
+                binding.tvTitle.text = "%s (%s)".format(startDt, dist)
+            } else {
+                binding.tvTitle.text = "%s (%s)".format(caption, dist)
+            }
         }
     }
 
@@ -110,7 +123,7 @@ class ReviewFragment : Fragment(R.layout.review_fragment),
         uiSettings.isZoomControlsEnabled = true
 
         val tripId = arguments?.getLong(ARGKEY_CURRENT_TRIPID)
-        trajectoryViewModel.getTrip(tripId!!, viewLifecycleOwner)
+        reviewViewModel.getTrip(tripId!!, viewLifecycleOwner)
     }
     /**
      * Zooms out until the whole track is visible. Used to make a screenshot of the

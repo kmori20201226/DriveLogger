@@ -15,6 +15,53 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         >
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar2"
+            android:layout_width="match_parent"
+            android:layout_height="86dp"
+            android:layout_weight="1"
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="?attr/actionBarTheme">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tvToolbarTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="7dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/app_name"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tvVersion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/tvToolbarTitle"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginBottom="0dp"
+                    android:layout_toEndOf="@+id/tvToolbarTitle"
+                    android:text="v0.1"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@id/tvToolbarTitle"
+                    app:layout_constraintStart_toEndOf="@id/tvToolbarTitle" />
+            </RelativeLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -46,9 +93,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/tvDistance"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="94dp"
+                android:layout_marginStart="26dp"
                 android:layout_marginBottom="0dp"
+                android:layout_toEndOf="@+id/tvDistance"
                 android:alpha="0.5"
                 android:elevation="2dp"
                 android:text="00:00:00"

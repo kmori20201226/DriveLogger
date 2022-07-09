@@ -2,6 +2,8 @@ package com.kmoriproj.drivelogger.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.fragment.app.viewModels
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -26,7 +28,7 @@ class MapsActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
+//        setSupportActionBar(binding.toolbar)
 //        setContentView(R.layout.activity_main)
 //        if (savedInstanceState == null) {
 //            supportFragmentManager.beginTransaction()
@@ -50,5 +52,4 @@ class MapsActivity : AppCompatActivity() {
 //                }
 //            }
     }
-
 }

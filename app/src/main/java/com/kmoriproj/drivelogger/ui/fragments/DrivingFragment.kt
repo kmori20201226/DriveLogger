@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.*
+import androidx.appcompat.view.menu.ActionMenuItemView
 import androidx.core.app.ActivityCompat
 import androidx.core.view.get
 import androidx.fragment.app.Fragment
@@ -66,7 +67,6 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             lastPointIx = savedInstanceState.getInt(BUNDLE_KEY_POINT_IX, 0)
         }
         Log.d("OvO", "DrivingFragment onCreate")
-        setHasOptionsMenu(true)
         viewModel.initService()
     }
 
@@ -84,8 +84,6 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         mapView.onSaveInstanceState(mapViewBundle!!)
     }
 
-    private var menu: Menu? = null
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -99,6 +97,20 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = DrivingFragmentBinding.bind(view)
+        binding.toolbar2.inflateMenu(R.menu.toolbar_menu_tracking)
+        binding.toolbar2.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.miTripList -> {
+                    findNavController().navigate(R.id.action_drivingFragment_to_tripsFragment)
+                    true
+                }
+                R.id.miConfigure -> {
+                    findNavController().navigate(R.id.action_global_settingsFragment)
+                    true
+                }
+                else -> false
+            }
+        }
         binding.mapView.onCreate(mapViewBundle)
         if (foregroundPermissionApproved()) {
             viewModel.getLastLocation().addOnCompleteListener() {
@@ -124,28 +136,6 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             findNavController().navigate(R.id.action_drivingFragment_to_endOfTripFragment)
         }
         requestPermissions()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.miTripList -> {
-                findNavController().navigate(R.id.action_drivingFragment_to_tripsFragment)
-            }
-            R.id.miConfigure -> {
-                findNavController().navigate(R.id.action_global_settingsFragment)
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.toolbar_menu_tracking, menu)
-        this.menu = menu
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
     }
 
     override fun onDestroy() {
@@ -261,7 +251,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                 binding.buttonTerminate.visibility = View.GONE
             }
         }
-        menu?.findItem(R.id.miTripList)?.setVisible(showTripList)
+        binding.toolbar2.menu.findItem(R.id.miTripList).setVisible(showTripList)
     }
     /**
      * Draws a polyline between the two latest points.
@@ -300,6 +290,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             lastPointIx--
         }
     }
+
     /// MIGRATED
 
     // TODO: Step 1.0, Review Permissions: Method checks if permissions approved.

@@ -7,7 +7,6 @@ import android.view.*
 import android.widget.AdapterView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -26,23 +25,21 @@ import com.kmoriproj.drivelogger.db.Trip
 import com.kmoriproj.drivelogger.repositories.TrajectoryRepository
 import com.kmoriproj.drivelogger.server_interaction.DriveLogUploadService
 import com.kmoriproj.drivelogger.server_interaction.UploadBody
-import com.kmoriproj.drivelogger.ui.TrajectoryViewModel
+import com.kmoriproj.drivelogger.ui.ReviewViewModel
 import com.kmoriproj.drivelogger.ui.TripViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import kotlin.coroutines.coroutineContext
 
 @AndroidEntryPoint
 class TripsFragment : Fragment(R.layout.fragment_trips) {
     lateinit var tripsAdapter: TripsAdapter
 
     private val tripViewModel: TripViewModel by viewModels()
-    private val trajectoryViewModel: TrajectoryViewModel by viewModels()
+    private val reviewViewModel: ReviewViewModel by viewModels()
 
     private val uploadSuccessMessage = MutableLiveData("")
     private val uploadErrorMessage = MutableLiveData("")
@@ -104,7 +101,7 @@ class TripsFragment : Fragment(R.layout.fragment_trips) {
                             .make(binding.root, getString(R.string.server_url_unknown), LENGTH_LONG)
                             .show()
                     } else {
-                        upload(trip, trajectoryViewModel.trajectoryRepository)
+                        upload(trip, reviewViewModel.trajectoryRepository)
                     }
                 }
             }
