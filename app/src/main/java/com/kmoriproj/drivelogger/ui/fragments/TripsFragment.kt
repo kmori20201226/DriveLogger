@@ -20,13 +20,14 @@ import com.kmoriproj.drivelogger.adapters.TripsAdapter
 import com.kmoriproj.drivelogger.common.Constants.Companion.ARGKEY_CURRENT_TRIPID
 import com.kmoriproj.drivelogger.common.Constants.Companion.KEY_DR_SERVER_URL
 import com.kmoriproj.drivelogger.common.SortType
+import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
 import com.kmoriproj.drivelogger.databinding.FragmentTripsBinding
 import com.kmoriproj.drivelogger.db.Trip
 import com.kmoriproj.drivelogger.repositories.TrajectoryRepository
 import com.kmoriproj.drivelogger.server_interaction.DriveLogUploadService
 import com.kmoriproj.drivelogger.server_interaction.UploadBody
-import com.kmoriproj.drivelogger.ui.ReviewViewModel
-import com.kmoriproj.drivelogger.ui.TripViewModel
+import com.kmoriproj.drivelogger.ui.viewmodels.ReviewViewModel
+import com.kmoriproj.drivelogger.ui.viewmodels.TripViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,7 +84,19 @@ class TripsFragment : Fragment(R.layout.fragment_trips) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //viewModel = (activity as MainActivity).mainViewModel
+
+        binding = FragmentTripsBinding.bind(view)
+
+        binding.toolbar2.inflateMenu(R.menu.toolbar_menu_tripsfragment)
+        binding.toolbar2.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.miConfigure -> {
+                    findNavController().navigate(R.id.action_global_settingsFragment)
+                    true
+                }
+                else -> false
+            }
+        }
         tripsAdapter = TripsAdapter {
             subAction, trip ->
             when(subAction) {
@@ -111,8 +124,6 @@ class TripsFragment : Fragment(R.layout.fragment_trips) {
         server_url = context
             ?.getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
             ?.getString(KEY_DR_SERVER_URL, default_url) ?: default_url
-
-        binding = FragmentTripsBinding.bind(view)
 
         setupRecyclerView()
 

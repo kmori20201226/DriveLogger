@@ -18,11 +18,9 @@ import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
 import com.kmoriproj.drivelogger.common.DateTimeString
 import com.kmoriproj.drivelogger.common.RichPoint
 import com.kmoriproj.drivelogger.databinding.ReviewFragmentBinding
-import com.kmoriproj.drivelogger.ui.ReviewViewModel
+import com.kmoriproj.drivelogger.ui.viewmodels.ReviewViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.*
 
 @AndroidEntryPoint
 class ReviewFragment : Fragment(R.layout.review_fragment),

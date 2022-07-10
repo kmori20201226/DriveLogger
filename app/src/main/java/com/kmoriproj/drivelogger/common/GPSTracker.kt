@@ -68,7 +68,7 @@ class GPSTracker @Inject constructor(
         }
     }
     @RequiresApi(Build.VERSION_CODES.Q)
-    fun addLocation(loc: Location) : CurrentLocation? {
+    fun addLocation(loc: Location) : LocationSnapshot? {
         val pos = LatLng(loc.latitude, loc.longitude)
         if (currentTrip?.startTime == 0L) {
             currentTrip?.startTime = loc.time
@@ -81,7 +81,7 @@ class GPSTracker @Inject constructor(
         if (lastPos == null) {
             lastPos = pos
             lastTick = loc.time
-            return CurrentLocation(
+            return LocationSnapshot(
                 time = loc.time,
                 latlng = pos,
                 travelDistance = 0.0f,
@@ -101,7 +101,7 @@ class GPSTracker @Inject constructor(
                     it.distanceFromStart += distanceInMeter
                 }
                 liveCurrentTrip.postValue(currentTrip)
-                return CurrentLocation(
+                return LocationSnapshot(
                     time = loc.time,
                     latlng = pos,
                     travelDistance = currentTrip?.distanceFromStart ?: 0.0f,

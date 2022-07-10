@@ -7,7 +7,7 @@ class DateTimeString {
     companion object {
         fun formatDateTime(t:Long): String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").localTime().format(Date(t))
         fun formatDate(t:Long): String = SimpleDateFormat("yyyy-MM-dd").localTime().format(Date(t))
-        fun elapsed(t2:Long, t1:Long): String {
+        fun elapsed(t2:Long, t1:Long=0): String {
             val e = (t2 - t1) / 1000
             val min = e % 60
             val hour = e / 60

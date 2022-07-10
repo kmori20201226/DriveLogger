@@ -32,7 +32,8 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.kmoriproj.drivelogger.R
-import com.kmoriproj.drivelogger.common.CurrentLocation
+import com.kmoriproj.drivelogger.common.DateTimeString
+import com.kmoriproj.drivelogger.common.LocationSnapshot
 import com.kmoriproj.drivelogger.repositories.LocationRepository
 import com.kmoriproj.drivelogger.ui.MapsActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -191,7 +192,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
     /*
      * Generates a BIG_TEXT_STYLE Notification that represent latest location.
      */
-    private fun generateNotification(location: CurrentLocation?): Notification {
+    private fun generateNotification(location: LocationSnapshot?): Notification {
         Timber.d("generateNotification()")
 
         // Main steps for building a BIG_TEXT_STYLE notification:
@@ -206,9 +207,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
             getString(R.string.no_location_text)
         } else {
             val distance = location.travelDistance / 1000
-            val hr = location.travelTime / 10000 / 3600
-            val min = (location.travelTime / 10000 % 3600) / 60
-            val duration = if (hr == 0L) "%dmin".format(min) else "%dhr%d".format(hr, min)
+            val duration = DateTimeString.elapsed(location.travelTime)
             "%.1fkm %s".format(distance, duration)
         }
         val titleText = getString(R.string.app_name)
@@ -249,10 +248,6 @@ class ForegroundOnlyLocationService : LifecycleService() {
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-//            .addAction(
-//                R.drawable.ic_launch, getString(R.string.launch_activity),
-//                activityPendingIntent
-//            )
             .build()
     }
 

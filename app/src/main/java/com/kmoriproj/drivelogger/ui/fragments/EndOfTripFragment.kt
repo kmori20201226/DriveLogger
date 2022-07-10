@@ -8,10 +8,8 @@ import androidx.navigation.fragment.findNavController
 import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.DateTimeString
 import com.kmoriproj.drivelogger.databinding.FragmentEndOfTripBinding
-import com.kmoriproj.drivelogger.ui.DrivingViewModel
+import com.kmoriproj.drivelogger.ui.viewmodels.DrivingViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
-import java.util.*
 
 @AndroidEntryPoint
 class EndOfTripFragment : Fragment(R.layout.fragment_end_of_trip) {

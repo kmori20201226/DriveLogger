@@ -22,15 +22,15 @@ class RichPoint(
                 POLYLINE_COLOR3
 
     companion object {
-        fun makeFrom(curloc: CurrentLocation, prevPoints: Polyline) : RichPoint {
-            val speedInKmParH = if (curloc.timeSpan > 0)
-                (curloc.distanceInMeter / 1000.0) / (curloc.timeSpan / 3600000.0)
+        fun makeFrom(ls: LocationSnapshot, prevPoints: Polyline) : RichPoint {
+            val speedInKmPerH = if (ls.timeSpan > 0)
+                (ls.distanceInMeter / 1000.0) / (ls.timeSpan / 3600000.0)
                     else 0
-            var t1= curloc.time
+            var t1= ls.time
             for (p in prevPoints.reversed()) {
                 val d = FloatArray(1)
                 Location.distanceBetween(
-                    curloc.latlng.latitude, curloc.latlng.longitude,
+                    ls.latlng.latitude, ls.latlng.longitude,
                     p.latlng.latitude, p.latlng.longitude,
                     d)
                 if (d[0] > 100.0) {
@@ -39,10 +39,10 @@ class RichPoint(
                 t1 = p.time
             }
             return RichPoint(
-                curloc.time,
-                latlng = curloc.latlng,
-                speed = speedInKmParH.toFloat(),
-                staleMinutes = curloc.time - t1
+                ls.time,
+                latlng = ls.latlng,
+                speed = speedInKmPerH.toFloat(),
+                staleMinutes = ls.time - t1
             )
         }
     }

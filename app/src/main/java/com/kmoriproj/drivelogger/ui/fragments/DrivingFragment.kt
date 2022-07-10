@@ -1,17 +1,11 @@
 package com.kmoriproj.drivelogger.ui.fragments
 
 import android.Manifest
-import android.content.*
 import android.content.pm.PackageManager
-import android.location.Location
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.*
-import androidx.appcompat.view.menu.ActionMenuItemView
 import androidx.core.app.ActivityCompat
-import androidx.core.view.get
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -22,7 +16,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.snackbar.Snackbar
-import com.kmoriproj.drivelogger.BuildConfig
 import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_MAPVIEW
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_POINT_IX
@@ -32,8 +25,7 @@ import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR2
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
 import com.kmoriproj.drivelogger.common.Polyline
 import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
-import com.kmoriproj.drivelogger.services.ForegroundOnlyLocationService
-import com.kmoriproj.drivelogger.ui.DrivingViewModel
+import com.kmoriproj.drivelogger.ui.viewmodels.DrivingViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -97,7 +89,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = DrivingFragmentBinding.bind(view)
-        binding.toolbar2.inflateMenu(R.menu.toolbar_menu_tracking)
+        binding.toolbar2.inflateMenu(R.menu.toolbar_menu_drivingfragment)
         binding.toolbar2.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.miTripList -> {

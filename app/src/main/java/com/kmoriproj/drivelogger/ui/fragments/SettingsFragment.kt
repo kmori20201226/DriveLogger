@@ -1,7 +1,8 @@
-package com.kmoriproj.drivelogger
+package com.kmoriproj.drivelogger.ui.fragments
 
 import android.os.Bundle
 import androidx.preference.PreferenceFragmentCompat
+import com.kmoriproj.drivelogger.R
 
 class SettingsFragment : PreferenceFragmentCompat() {
 

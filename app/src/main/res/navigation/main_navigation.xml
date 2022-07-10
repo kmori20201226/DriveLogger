@@ -42,7 +42,7 @@
         android:label="ReviewFragment" />
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.kmoriproj.drivelogger.SettingsFragment"
+        android:name="com.kmoriproj.drivelogger.ui.fragments.SettingsFragment"
         android:label="SettingsFragment" />
 
     <action android:id="@+id/action_global_settingsFragment"

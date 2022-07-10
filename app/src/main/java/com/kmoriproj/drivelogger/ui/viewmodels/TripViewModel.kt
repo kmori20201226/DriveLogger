@@ -1,4 +1,4 @@
-package com.kmoriproj.drivelogger.ui
+package com.kmoriproj.drivelogger.ui.viewmodels
 
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModel

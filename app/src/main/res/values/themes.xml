@@ -13,6 +13,7 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="android:actionMenuTextColor">@color/teal_200</item>
     </style>
     <style name="AlertDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
@@ -26,10 +27,11 @@
     <style name="PositiveButtonStyle" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
         <item name="android:textColor">@color/colorAccent</item>
     </style>
-    <style name="ToolBarStyle" parent="ThemeOverlay.MaterialComponents.Toolbar.Surface">
+    <style name="ActionBarStyle" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
         <item name="android:itemBackground">#cfc</item>  // background color of the menus
         <item name="android:textColor">#000</item>// text color of the  menus
         <item name="android:textColorSecondary">#00f</item>
+        <item name="android:icon">@drawable/ic_settings</item>
     </style>
 
 </resources>

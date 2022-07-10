@@ -12,12 +12,11 @@ import com.kmoriproj.drivelogger.repositories.LocationRepository
 import com.kmoriproj.drivelogger.repositories.SharedLocationManager
 import com.kmoriproj.drivelogger.repositories.TrajectoryRepository
 import com.kmoriproj.drivelogger.repositories.TripRepository
-import com.kmoriproj.drivelogger.ui.DrivingViewModel
+import com.kmoriproj.drivelogger.ui.viewmodels.DrivingViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.ServiceScoped
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 

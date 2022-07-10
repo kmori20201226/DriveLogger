@@ -13,14 +13,12 @@ import com.google.android.gms.tasks.Task
 import com.kmoriproj.drivelogger.BaseApplication
 import com.kmoriproj.drivelogger.common.Constants.Companion.FASTEST_LOCATION_UPDATE_INTERVAL
 import com.kmoriproj.drivelogger.common.Constants.Companion.LOCATION_UPDATE_INTERVAL
-import com.kmoriproj.drivelogger.common.CurrentLocation
+import com.kmoriproj.drivelogger.common.LocationSnapshot
 import com.kmoriproj.drivelogger.common.GPSTracker
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 
 class SharedLocationManager(
     private val context: Context,
@@ -57,7 +55,7 @@ class SharedLocationManager(
     }
     @ExperimentalCoroutinesApi
     @SuppressLint("MissingPermission")
-    private var _locationFlow = callbackFlow<CurrentLocation> {
+    private var _locationFlow = callbackFlow<LocationSnapshot> {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 Timber.d("Location change received")
@@ -89,7 +87,7 @@ class SharedLocationManager(
     )
 
     @ExperimentalCoroutinesApi
-    val locationFlow: Flow<CurrentLocation>
+    val locationFlow: Flow<LocationSnapshot>
         get() = _locationFlow
 
     fun getLastLocation(): Task<Location>

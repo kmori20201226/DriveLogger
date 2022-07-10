@@ -23,7 +23,7 @@
             android:layout_weight="1"
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
-            android:theme="?attr/actionBarTheme">
+            android:theme="@style/ActionBarStyle">
 
             <RelativeLayout
                 android:layout_width="match_parent"
