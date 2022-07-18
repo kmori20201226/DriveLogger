@@ -175,6 +175,8 @@ class LocationRepository @Inject constructor(
     fun endTrip() {
         Log.d("OvO", "ViewModel::endTrip")
         endTrackLocation()
+        _distanceFromStartKm.value = 0.0f
+        _timeRunInSeconds.value = 0
         _isTravelling.value = false
     }
 

@@ -8,15 +8,20 @@
             app:title="@string/url"
             app:useSimpleSummaryProvider="true"
             />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Still point detection">
+
         <SeekBarPreference
             app:key="KEY_START_MOVING_SPEED"
-            app:title="Speed(km/h) breaks still state"
+            app:title="Speed(km/h) to break still state"
             app:showSeekBarValue="true"
             android:max="80"
             />
+
         <SeekBarPreference
             app:key="KEY_STAY_TIME_THRESHOLD"
-            app:title="Time (secs) still state"
+            app:title="Minimum time (secs) to recognize as still state"
             app:showSeekBarValue="true"
             android:max="600"
             />

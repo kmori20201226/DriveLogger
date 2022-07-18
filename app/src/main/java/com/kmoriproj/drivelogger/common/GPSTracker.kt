@@ -75,6 +75,9 @@ class GPSTracker @Inject constructor(
         if (trajBuf.size >= trajBufSpill) {
             flush()
         }
+        if (loc.accuracy >= 100.0) {        // Low accurary
+            return null
+        }
         if (lastPos == null) {
             lastPos = pos
             lastTick = loc.time
