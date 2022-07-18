@@ -18,6 +18,8 @@ class DrivingViewModel @Inject constructor(
 
     val timeRunInSeconds = repository.timeRunInSeconds
 
+    val stillSpots = repository.stillSpots
+
     val pathPoints = repository.pathPoints
 
     val distanceFromStartKm = repository.distanceFromStartKm

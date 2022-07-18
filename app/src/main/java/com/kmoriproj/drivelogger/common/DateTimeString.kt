@@ -5,10 +5,10 @@ import java.util.*
 
 class DateTimeString {
     companion object {
-        fun formatDateTime(t:Long): String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").localTime().format(Date(t))
-        fun formatDate(t:Long): String = SimpleDateFormat("yyyy-MM-dd").localTime().format(Date(t))
+        fun formatDateTime(ms:Long): String = SimpleDateFormat("MM/dd HH:mm").localTime().format(Date(ms))
+        fun formatDate(ms:Long): String = SimpleDateFormat("yyyy-MM-dd").localTime().format(Date(ms))
         fun elapsed(t2:Long, t1:Long=0): String {
-            val e = (t2 - t1) / 1000
+            val e = ((t2 - t1) / 1000) / 60
             val min = e % 60
             val hour = e / 60
             return if (hour == 0L) {

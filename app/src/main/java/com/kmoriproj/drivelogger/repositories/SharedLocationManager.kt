@@ -15,7 +15,7 @@ import com.kmoriproj.drivelogger.common.Constants.Companion.FASTEST_LOCATION_UPD
 import com.kmoriproj.drivelogger.common.Constants.Companion.LOCATION_UPDATE_INTERVAL
 import com.kmoriproj.drivelogger.common.LocationSnapshot
 import com.kmoriproj.drivelogger.common.GPSTracker
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
@@ -53,14 +53,19 @@ class SharedLocationManager(
     init {
         Log.d("OvO", "SharedLocationManager created!!!")
     }
+
+    private val job = Job()
+    private val coroutinesScope: CoroutineScope = CoroutineScope(job + Dispatchers.IO)
+
     @ExperimentalCoroutinesApi
     @SuppressLint("MissingPermission")
     private var _locationFlow = callbackFlow<LocationSnapshot> {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                Timber.d("Location change received")
-                gps.addLocation(result.lastLocation!!)?.also {
-                    trySend(it)
+                coroutinesScope.launch {
+                    gps.addLocation(result.lastLocation!!)?.also {
+                        trySend(it)
+                    }
                 }
             }
         }
@@ -78,13 +83,18 @@ class SharedLocationManager(
         awaitClose {
             Log.d("OvO", "closeTrip!!!")
             fusedLocationProviderClient.removeLocationUpdates(callback) // clean up when Flow collection ends
-            gps.flush()
+            coroutinesScope.launch {
+                gps.flush()
+            }
         }
     }.shareIn(
         (context.applicationContext as BaseApplication).applicationScope,
         replay = 0,
         started = SharingStarted.Lazily
     )
+
+    val tripId: Long?
+        get() = gps.currentTrip?.id
 
     @ExperimentalCoroutinesApi
     val locationFlow: Flow<LocationSnapshot>

@@ -6,25 +6,26 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.preference.PreferenceManager
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
 import com.kmoriproj.drivelogger.BaseApplication
 import com.kmoriproj.drivelogger.R
-import com.kmoriproj.drivelogger.common.Constants
-import com.kmoriproj.drivelogger.common.GPSTracker
-import com.kmoriproj.drivelogger.common.Polyline
-import com.kmoriproj.drivelogger.common.RichPoint
+import com.kmoriproj.drivelogger.common.*
+import com.kmoriproj.drivelogger.common.Constants.Companion.KEY_START_MOVING_SPEED
+import com.kmoriproj.drivelogger.common.Constants.Companion.KEY_STAY_TIME_THRESHOLD
+import com.kmoriproj.drivelogger.db.Spot
+import com.kmoriproj.drivelogger.db.SpotDao
 import com.kmoriproj.drivelogger.services.SharedPreferenceUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
 class LocationRepository @Inject constructor(
     private val context: Context,
-    private val sharedLocationManager: SharedLocationManager
+    private val sharedLocationManager: SharedLocationManager,
+    private val spotDao: SpotDao
 ) : SharedPreferences.OnSharedPreferenceChangeListener  {
     /**
      * Observable flow for location updates
@@ -34,6 +35,84 @@ class LocationRepository @Inject constructor(
     fun getLastLocation(): Task<Location> = sharedLocationManager.getLastLocation()
 
     val gpsTracker: GPSTracker get() = sharedLocationManager.gps
+
+    private val _spots = mutableListOf<Spot>()
+    private val _stillSpots = MutableLiveData<List<Spot>>(mutableListOf())
+    val stillSpots: LiveData<List<Spot>> = _stillSpots
+
+    inner class MovementSensor(val initialLocation: LocationSnapshot) {
+
+        private var pivot: LatLng = initialLocation.latlng
+        private var last = initialLocation
+        private val accum = mutableListOf<LocationSnapshot>()
+
+        private val center: LatLng
+            get() {
+                var lat = initialLocation.latlng.latitude
+                var lon = initialLocation.latlng.longitude
+                accum.forEach {
+                    lat += it.latlng.latitude
+                    lon += it.latlng.longitude
+                }
+                val n = accum.size + 1
+                return LatLng(lat / n, lon / n)
+            }
+
+        private val radius: Float
+            get() {
+                val c = center
+                var maxDistance = initialLocation.latlng.distanceTo(c)
+                accum.forEach {
+                    val d = it.latlng.distanceTo(c)
+                    if (d > maxDistance) {
+                        maxDistance = d
+                    }
+                }
+                return maxDistance
+            }
+
+        fun withinRange(curr: LocationSnapshot): Boolean {
+            val startMovingSpeed = sharedPreferences.getInt(KEY_START_MOVING_SPEED, 20).toFloat()
+            val stayTimeThreshold = sharedPreferences.getInt(KEY_STAY_TIME_THRESHOLD, 180)
+
+            val d = curr.latlng.distanceTo(last.latlng)
+            val t = (curr.time - last.time) / 1000
+            val speed = (d / 1000.0) / (t / 3600.0)
+            if (speed < startMovingSpeed) {
+                accum.add(curr)
+                return true
+            }
+            //if (curr.latlng.distanceTo(pivot) <= radiusThreshold) {
+            //    return true
+            //}
+            val stayTime = (curr.time - initialLocation.time) / 1000
+            if (stayTime >= stayTimeThreshold) {
+                val x = this@LocationRepository._stillSpots.value
+                this@LocationRepository._spots.add(
+                    Spot(
+                        tripId=this@LocationRepository.sharedLocationManager.tripId!!,
+                        stayTime=stayTime,
+                        point=center,
+                        radius=radius
+                    )
+                )
+                this@LocationRepository._stillSpots.postValue(_spots)
+            }
+            return false
+        }
+    }
+
+    private var stay1: MovementSensor? = null
+
+    private fun keepTrackStill(curr: LocationSnapshot) {
+        if (stay1 == null) {
+            stay1 = MovementSensor(curr)
+        } else {
+            if (stay1!!.withinRange(curr) == false) {
+                stay1 = null
+            }
+        }
+    }
 
     private val _pathPoints =  MutableLiveData<Polyline>(mutableListOf())
 
@@ -51,6 +130,7 @@ class LocationRepository @Inject constructor(
                 .onEach {
                     _pathPoints.value?.add(RichPoint.makeFrom(it, pathPoints.value!!))
                     _pathPoints.postValue(_pathPoints.value)
+                    keepTrackStill(it)
                     _distanceFromStartKm.postValue(gpsTracker.distanceFromStartKm)
                 }
                 .launchIn((context.applicationContext as BaseApplication).applicationScope)
@@ -79,7 +159,9 @@ class LocationRepository @Inject constructor(
         if (_isTravelling.value != true) {
             _isTracking.value = true
             _isTravelling.value = true
-            startTrip()
+            coroutinesScope.launch {
+                startTrip()
+            }
         }
         startTimer()
     }
@@ -126,15 +208,24 @@ class LocationRepository @Inject constructor(
     }
 
     fun flush() {
-        gpsTracker.flush()
+        coroutinesScope.launch {
+            gpsTracker.flush()
+        }
     }
+
+    private val job = Job()
+    private val coroutinesScope: CoroutineScope = CoroutineScope(job + Dispatchers.IO)
 
     fun saveTrip() {
-        gpsTracker.saveTrip()
+        coroutinesScope.launch {
+            gpsTracker.saveTrip()
+            _spots.forEach {
+                spotDao.insertSpot(it)
+            }
+        }
     }
 
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences(context.getString(
-        R.string.preference_file_key), Context.MODE_PRIVATE)
+    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context!!);
 
     private val isForegroundEnabled
         get() = sharedPreferences.getBoolean(SharedPreferenceUtil.KEY_FOREGROUND_ENABLED, false)

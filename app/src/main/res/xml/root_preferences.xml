@@ -6,7 +6,20 @@
         <EditTextPreference
             app:key="DR_SERVER_URL"
             app:title="@string/url"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            />
+        <SeekBarPreference
+            app:key="KEY_START_MOVING_SPEED"
+            app:title="Speed(km/h) breaks still state"
+            app:showSeekBarValue="true"
+            android:max="80"
+            />
+        <SeekBarPreference
+            app:key="KEY_STAY_TIME_THRESHOLD"
+            app:title="Time (secs) still state"
+            app:showSeekBarValue="true"
+            android:max="600"
+            />
 
     </PreferenceCategory>
 

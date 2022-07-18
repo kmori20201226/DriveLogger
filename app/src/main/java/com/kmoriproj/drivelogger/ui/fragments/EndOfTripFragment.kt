@@ -35,7 +35,7 @@ class EndOfTripFragment : Fragment(R.layout.fragment_end_of_trip) {
         viewModel.liveCurrentTrip.observe(viewLifecycleOwner) {
             with( viewModel.liveCurrentTrip.value ) {
                 binding.tvStartTime.text = DateTimeString.formatDateTime(it.startTime)
-                binding.tvEndTime.text = DateTimeString.formatDateTime(it.endTime)
+                binding.tvEnd.text = DateTimeString.elapsed(it.endTime, it.startTime)
                 binding.tvDistanceFromStart.text = "%.1fkm".format(it.distanceFromStart / 1000.0)
                 binding.tvNumPoints.text = "%d".format(it.numDataPoints)
             }

@@ -2,6 +2,7 @@ package com.kmoriproj.drivelogger.common
 
 import android.location.Location
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
@@ -22,53 +23,49 @@ class GPSTracker @Inject constructor(
 
     private val trajBuf = mutableListOf<TrajPoint>()
     private val trajBufSpill = 100
-    val job = Job()
-    val coroutinesScope: CoroutineScope = CoroutineScope(job + Dispatchers.IO)
     var lastPos: LatLng? = null
     var lastTick: Long? = null
     //val locationList = mutableListOf<Location>()
     val distanceFromStartKm
         get() = (currentTrip?.distanceFromStart ?: 0.0f) / 1000.0f
+
     fun reset() {
         trajBuf.clear()
         lastPos = null
         lastTick = null
-        //locationList.clear()
     }
-    fun startTrip() {
+
+    suspend fun startTrip() {
         currentTrip = Trip()
         liveCurrentTrip.postValue(currentTrip)
-        coroutinesScope.launch {
-            val id = tripRepository.insertTrip(currentTrip!!)
-            currentTrip?.id = id
-            Timber.d("Trip added " + id.toString())
-        }
+        val id = tripRepository.insertTrip(currentTrip!!)
+        currentTrip?.id = id
+        Timber.d("Trip added " + id.toString())
     }
-    fun saveTrip() {
-        coroutinesScope.launch {
-            flush()
-            tripRepository.insertTrip(currentTrip!!)
-            Timber.d("Trip save")
-        }
+
+    suspend fun saveTrip() {
+        flush()
+        tripRepository.insertTrip(currentTrip!!)
+        Timber.d("Trip save")
     }
-    fun flush() {
+
+    suspend fun flush() {
         if (trajBuf.size > 0) {
             val trajRec = Trajectory(
                 tripId = currentTrip?.id,
                 trajPoints = TrajPointList(trajBuf.toList())
             )
             trajBuf.clear()
-            coroutinesScope.launch {
-                trajectoryRepository.insertTrajectory(trajRec)
-                Timber.d("Record added")
-            }
+            trajectoryRepository.insertTrajectory(trajRec)
+            Timber.d("Record added")
             currentTrip?.let {
                 it.numDataPoints = it.numDataPoints + trajRec.size
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.Q)
-    fun addLocation(loc: Location) : LocationSnapshot? {
+    suspend fun addLocation(loc: Location) : LocationSnapshot? {
         val pos = LatLng(loc.latitude, loc.longitude)
         if (currentTrip?.startTime == 0L) {
             currentTrip?.startTime = loc.time
@@ -83,6 +80,7 @@ class GPSTracker @Inject constructor(
             lastTick = loc.time
             return LocationSnapshot(
                 time = loc.time,
+                speed = loc.speed,
                 latlng = pos,
                 travelDistance = 0.0f,
                 travelTime = 0,
@@ -90,12 +88,7 @@ class GPSTracker @Inject constructor(
                 timeSpan = 0
             )
         } else {
-            val result = FloatArray(1)
-            Location.distanceBetween(
-                pos.latitude, pos.longitude,
-                lastPos!!.latitude, lastPos!!.longitude,
-                result)
-            val distanceInMeter = result[0]
+            val distanceInMeter = pos.distanceTo(lastPos!!)
             if (distanceInMeter >= 2.0) {
                 currentTrip?.let {
                     it.distanceFromStart += distanceInMeter
@@ -103,6 +96,7 @@ class GPSTracker @Inject constructor(
                 liveCurrentTrip.postValue(currentTrip)
                 return LocationSnapshot(
                     time = loc.time,
+                    speed = loc.speed,
                     latlng = pos,
                     travelDistance = currentTrip?.distanceFromStart ?: 0.0f,
                     travelTime = loc.time - (currentTrip?.startTime ?: loc.time),
@@ -114,6 +108,7 @@ class GPSTracker @Inject constructor(
                 }
             }
         }
+        Log.d("OvO", "ADD Location Skipped")
         return null
     }
 }

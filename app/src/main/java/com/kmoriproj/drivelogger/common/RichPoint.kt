@@ -28,12 +28,8 @@ class RichPoint(
                     else 0
             var t1= ls.time
             for (p in prevPoints.reversed()) {
-                val d = FloatArray(1)
-                Location.distanceBetween(
-                    ls.latlng.latitude, ls.latlng.longitude,
-                    p.latlng.latitude, p.latlng.longitude,
-                    d)
-                if (d[0] > 100.0) {
+                val d = ls.latlng.distanceTo(p.latlng)
+                if (d > 100.0) {
                     break
                 }
                 t1 = p.time

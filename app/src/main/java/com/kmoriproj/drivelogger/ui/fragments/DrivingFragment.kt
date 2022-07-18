@@ -14,17 +14,20 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.snackbar.Snackbar
 import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_MAPVIEW
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_POINT_IX
+import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_SPOT_IX
 import com.kmoriproj.drivelogger.common.Constants.Companion.MAP_ZOOM
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR1
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_COLOR2
 import com.kmoriproj.drivelogger.common.Constants.Companion.POLYLINE_WIDTH
 import com.kmoriproj.drivelogger.common.Polyline
 import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
+import com.kmoriproj.drivelogger.db.Spot
 import com.kmoriproj.drivelogger.ui.viewmodels.DrivingViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -39,9 +42,8 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
 
     private var isTravelling = false
     private lateinit var binding: DrivingFragmentBinding
-    //private var pathPoints = mutableListOf<LatLng>()
+    private var lastSpotIx = 0
     private var lastPointIx = 0
-    //private val viewModel: MainViewModel by viewModels()
 
     private lateinit var mMap: GoogleMap
 
@@ -56,6 +58,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         isTravelling = false
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(BUNDLE_KEY_MAPVIEW)
+            lastSpotIx = savedInstanceState.getInt(BUNDLE_KEY_SPOT_IX, 0)
             lastPointIx = savedInstanceState.getInt(BUNDLE_KEY_POINT_IX, 0)
         }
         Log.d("OvO", "DrivingFragment onCreate")
@@ -68,6 +71,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(BUNDLE_KEY_POINT_IX, lastPointIx)
+        outState.putInt(BUNDLE_KEY_SPOT_IX, lastSpotIx)
         mapViewBundle = outState.getBundle(BUNDLE_KEY_MAPVIEW)
         if (mapViewBundle == null) {
             mapViewBundle = Bundle()
@@ -176,16 +180,22 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         mMap.mapType = MAP_TYPE_NORMAL
         uiSettings.isZoomGesturesEnabled = true
         uiSettings.isZoomControlsEnabled = true
+
         viewModel.isTracking.observe(viewLifecycleOwner) {
             updateButtonText()
         }
 
+        lastSpotIx = 0
         lastPointIx = 0
 
         viewModel.isTravelling.observe(viewLifecycleOwner) {
             if (it == false) {
                 mMap.clear()
             }
+        }
+
+        viewModel.stillSpots.observe(viewLifecycleOwner) {
+            addStillSpot(it)
         }
 
         viewModel.pathPoints.observe(viewLifecycleOwner) {
@@ -244,6 +254,21 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             }
         }
         binding.toolbar2.menu.findItem(R.id.miTripList).setVisible(showTripList)
+    }
+    private fun addStillSpot(stillSpots: List<Spot>) {
+        fun drawSpot(spot: Spot) {
+            mMap.addMarker(
+                MarkerOptions().position(spot.point)
+            )
+        }
+        if (stillSpots.isNotEmpty()) {
+            if (lastSpotIx >= stillSpots.size) {
+                lastSpotIx = 0
+            }
+            while (lastSpotIx < stillSpots.size) {
+                drawSpot(stillSpots[lastSpotIx++])
+            }
+        }
     }
     /**
      * Draws a polyline between the two latest points.

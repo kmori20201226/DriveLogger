@@ -9,6 +9,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants
@@ -56,6 +57,14 @@ class ReviewFragment : Fragment(R.layout.review_fragment),
                 binding.tvTitle.text = "%s (%s)".format(startDt, dist)
             } else {
                 binding.tvTitle.text = "%s (%s)".format(caption, dist)
+            }
+        }
+        reviewViewModel.spots.observe(viewLifecycleOwner) {
+                spotList ->
+            spotList.forEach {
+                mMap.addMarker(
+                    MarkerOptions().position(it.point)
+                )
             }
         }
     }

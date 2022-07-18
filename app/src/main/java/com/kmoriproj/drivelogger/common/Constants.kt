@@ -7,8 +7,8 @@ class Constants {
 
     companion object {
         const val BUNDLE_KEY_MAPVIEW = "MapViewBundleKey"
-        const val BUNDLE_KEY_POINT_IX = "PointIx1BundleKey"
-        const val BUNDLE_KEY_POINT_IX2 = "PointIx2BundleKey"
+        const val BUNDLE_KEY_POINT_IX = "PointIxBundleKey"
+        const val BUNDLE_KEY_SPOT_IX = "SpotIxBundleKey"
 
         const val REQUEST_CODE_LOCATION_PERMISSION = 0
 
@@ -41,6 +41,8 @@ class Constants {
 
         // Shared Preferences
         const val KEY_DR_SERVER_URL = "DR_SERVER_URL"
+        const val KEY_START_MOVING_SPEED = "KEY_START_MOVING_SPEED"
+        const val KEY_STAY_TIME_THRESHOLD = "KEY_STAY_TIME_THRESHOLD"
 
         // Service Intent Actions
         const val ACTION_INIT_LOCATION = "ACTION_INIT_LOCATION"

@@ -6,12 +6,10 @@ import androidx.room.Room
 import com.kmoriproj.drivelogger.common.Constants.Companion.DATABASE_NAME
 import com.kmoriproj.drivelogger.common.GPSTracker
 import com.kmoriproj.drivelogger.db.DriveLoggerDatabase
+import com.kmoriproj.drivelogger.db.SpotDao
 import com.kmoriproj.drivelogger.db.TrajectoryDao
 import com.kmoriproj.drivelogger.db.TripDao
-import com.kmoriproj.drivelogger.repositories.LocationRepository
-import com.kmoriproj.drivelogger.repositories.SharedLocationManager
-import com.kmoriproj.drivelogger.repositories.TrajectoryRepository
-import com.kmoriproj.drivelogger.repositories.TripRepository
+import com.kmoriproj.drivelogger.repositories.*
 import com.kmoriproj.drivelogger.ui.viewmodels.DrivingViewModel
 import dagger.Module
 import dagger.Provides
@@ -48,6 +46,12 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun provideSpotDao(db: DriveLoggerDatabase): SpotDao {
+        return db.getSpotDao()
+    }
+
+    @Singleton
+    @Provides
     fun provideGPSTracker(
         trajectoryRepository: TrajectoryRepository,
         tripRepository: TripRepository
@@ -65,5 +69,6 @@ object AppModule {
     fun provideLocationRepository(
         @ApplicationContext context: Context,
         sharedLocationManager: SharedLocationManager,
-    ) = LocationRepository(context, sharedLocationManager)
+        spotDao: SpotDao
+    ) = LocationRepository(context, sharedLocationManager, spotDao)
 }
