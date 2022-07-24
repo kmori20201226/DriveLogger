@@ -1,5 +1,6 @@
 package com.kmoriproj.drivelogger.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,7 +9,6 @@ import com.kmoriproj.drivelogger.db.Trip
 import com.kmoriproj.drivelogger.repositories.TripRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,25 +26,25 @@ class TripViewModel @Inject constructor(
 
     init {
         trips.addSource(tripsSortedByDate) { result ->
-            Timber.d("TRIPS SORTED BY Date")
+            Log.d("OvO", "TRIPS SORTED BY Date")
             if (sortType == SortType.DATE) {
                 result?.let { trips.value = it }
             }
         }
         trips.addSource(tripsSortedByStartTime) { result ->
-            Timber.d("TRIPS SORTED BY StartTime")
+            Log.d("OvO", "TRIPS SORTED BY StartTime")
             if (sortType == SortType.STARTTIME) {
                 result?.let { trips.value = it }
             }
         }
         trips.addSource(tripsSortedByFarest) { result ->
-            Timber.d("TRIPS SORTED BY Farest")
+            Log.d("OvO", "TRIPS SORTED BY Farest")
             if (sortType == SortType.FAREST) {
                 result?.let { trips.value = it }
             }
         }
         trips.addSource(tripsSortedByNearest) { result ->
-            Timber.d("TRIPS SORTED BY Nearest")
+            Log.d("OvO", "TRIPS SORTED BY Nearest")
             if (sortType == SortType.NEAREST) {
                 result?.let { trips.value = it }
             }

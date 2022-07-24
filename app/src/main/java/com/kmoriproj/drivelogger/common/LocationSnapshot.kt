@@ -11,4 +11,6 @@ data class LocationSnapshot (
     val distanceInMeter: Float,
     val timeSpan: Long
     ){
+    val speedInKmH
+        get() = (speed / 1000.0) / (speed / 3600.0)
 }

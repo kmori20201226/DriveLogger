@@ -9,8 +9,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.kmoriproj.drivelogger.db.*
 import com.kmoriproj.drivelogger.repositories.TrajectoryRepository
 import com.kmoriproj.drivelogger.repositories.TripRepository
-import kotlinx.coroutines.*
-import timber.log.Timber
 import javax.inject.Inject
 
 class GPSTracker @Inject constructor(
@@ -40,13 +38,13 @@ class GPSTracker @Inject constructor(
         liveCurrentTrip.postValue(currentTrip)
         val id = tripRepository.insertTrip(currentTrip!!)
         currentTrip?.id = id
-        Timber.d("Trip added " + id.toString())
+        Log.d("OvO", "Trip added " + id.toString())
     }
 
     suspend fun saveTrip() {
         flush()
         tripRepository.insertTrip(currentTrip!!)
-        Timber.d("Trip save")
+        Log.d("OvO", "Trip save")
     }
 
     suspend fun flush() {
@@ -57,7 +55,7 @@ class GPSTracker @Inject constructor(
             )
             trajBuf.clear()
             trajectoryRepository.insertTrajectory(trajRec)
-            Timber.d("Record added")
+            Log.d("OvO", "Record added")
             currentTrip?.let {
                 it.numDataPoints = it.numDataPoints + trajRec.size
             }

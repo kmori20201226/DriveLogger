@@ -18,7 +18,6 @@ import com.kmoriproj.drivelogger.common.GPSTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import timber.log.Timber
 
 class SharedLocationManager(
     private val context: Context,
@@ -76,7 +75,7 @@ class SharedLocationManager(
             callback,
             Looper.getMainLooper()
         ).addOnFailureListener { e ->
-            Timber.e(e)
+            Log.e("OvO", e.toString())
             close(e) // in case of exception, close the Flow
         }
 

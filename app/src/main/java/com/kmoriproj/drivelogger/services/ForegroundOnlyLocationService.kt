@@ -26,6 +26,7 @@ import android.location.Location
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleService
@@ -40,7 +41,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import timber.log.Timber
 
 /**
  * Service tracks location when requested and updates Activity via binding. If Activity is
@@ -88,14 +88,14 @@ class ForegroundOnlyLocationService : LifecycleService() {
     private var currentLocation: Location? = null
 
     override fun onCreate() {
-        Timber.d("ForegroundOnlyLocationService onCreate()")
+        Log.d("OvO", "ForegroundOnlyLocationService onCreate()")
         super.onCreate()
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Timber.d("ForegroundOnlyLocationService onStartCommand()")
+        Log.d("OvO", "ForegroundOnlyLocationService onStartCommand()")
 
         val cancelLocationTrackingFromNotification =
             intent?.getBooleanExtra(EXTRA_CANCEL_LOCATION_TRACKING_FROM_NOTIFICATION, false)
@@ -110,7 +110,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
     }
 
     override fun onBind(intent: Intent): IBinder {
-        Timber.d("ForegroundOnlyLocationService onBind()")
+        Log.d("OvO", "ForegroundOnlyLocationService onBind()")
 
         if (false) {
             // MainActivity (client) comes into foreground and binds to service, so the service can
@@ -123,7 +123,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
     }
 
     override fun onRebind(intent: Intent) {
-        Timber.d("ForegroundOnlyLocationService onRebind()")
+        Log.d("OvO", "ForegroundOnlyLocationService onRebind()")
         if (false) {
             // MainActivity (client) returns to the foreground and rebinds to service, so the service
             // can become a background services.
@@ -135,14 +135,14 @@ class ForegroundOnlyLocationService : LifecycleService() {
     }
 
     override fun onUnbind(intent: Intent): Boolean {
-        Timber.d("ForegroundOnlyLocationService onUnbind()")
+        Log.d("OvO", "ForegroundOnlyLocationService onUnbind()")
 
         // MainActivity (client) leaves foreground, so service needs to become a foreground service
         // to maintain the 'while-in-use' label.
         // NOTE: If this method is called due to a configuration change in MainActivity,
         // we do nothing.
         if (!configurationChange && SharedPreferenceUtil.getLocationTrackingPref(this)) {
-            Timber.d("Start foreground service")
+            Log.d("OvO", "Start foreground service")
         }
 
         // Ensures onRebind() is called if MainActivity (client) rebinds.
@@ -150,7 +150,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
     }
 
     override fun onDestroy() {
-        Timber.d("ForegroundOnlyLocationService onDestroy()")
+        Log.d("OvO", "ForegroundOnlyLocationService onDestroy()")
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -159,7 +159,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
     }
 
     fun subscribeToLocationUpdates(repository: LocationRepository) {
-        Timber.d("ForegroundOnlyLocationService subscribeToLocationUpdates()")
+        Log.d("OvO", "ForegroundOnlyLocationService subscribeToLocationUpdates()")
 
         SharedPreferenceUtil.saveLocationTrackingPref(this, true)
 
@@ -183,7 +183,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
     }
 
     fun unsubscribeToLocationUpdates() {
-        Timber.d("ForegroundOnlyLocationService unsubscribeToLocationUpdates()")
+        Log.d("OvO", "ForegroundOnlyLocationService unsubscribeToLocationUpdates()")
         stopForeground(0)
         SharedPreferenceUtil.saveLocationTrackingPref(this, false)
         notificationManager.cancel(NOTIFICATION_ID)
@@ -193,7 +193,7 @@ class ForegroundOnlyLocationService : LifecycleService() {
      * Generates a BIG_TEXT_STYLE Notification that represent latest location.
      */
     private fun generateNotification(location: LocationSnapshot?): Notification {
-        Timber.d("generateNotification()")
+        Log.d("OvO", "generateNotification()")
 
         // Main steps for building a BIG_TEXT_STYLE notification:
         //      0. Get data

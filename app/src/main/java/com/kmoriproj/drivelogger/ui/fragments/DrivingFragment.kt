@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.snackbar.Snackbar
+import com.kmoriproj.drivelogger.BaseApplication
 import com.kmoriproj.drivelogger.R
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_MAPVIEW
 import com.kmoriproj.drivelogger.common.Constants.Companion.BUNDLE_KEY_POINT_IX
@@ -30,7 +31,6 @@ import com.kmoriproj.drivelogger.databinding.DrivingFragmentBinding
 import com.kmoriproj.drivelogger.db.Spot
 import com.kmoriproj.drivelogger.ui.viewmodels.DrivingViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 
@@ -127,7 +127,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
         }
         binding.buttonTerminate.setOnClickListener {
             //viewModel.endTracking()
-            Timber.d("DrivingFragment goto endOfTripFragment")
+            Log.d("OvO", "DrivingFragment goto endOfTripFragment")
             viewModel.endTracking()
             findNavController().navigate(R.id.action_drivingFragment_to_endOfTripFragment)
         }
@@ -173,7 +173,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
-        Timber.d("DrivingFragment onMapReady")
+        Log.d("OvO", "DrivingFragment onMapReady")
         mMap = googleMap
 
         val uiSettings = mMap.uiSettings
@@ -276,11 +276,11 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
     private fun addLatestPolyline(pathPoints: Polyline) {
         // only add polyline if we have at least two elements in the last polyline
         if (pathPoints.isNotEmpty()) {
-            Timber.d("OvO addLatestPolyline size=${pathPoints.size} ix=${lastPointIx}")
+            Log.d("OvO", "OvO addLatestPolyline size=${pathPoints.size} ix=${lastPointIx}")
             if (lastPointIx >= pathPoints.size) {
-                Timber.d("    OvO cleared ${lastPointIx} > $pathPoints.size")
+                Log.d("OvO", "    OvO cleared ${lastPointIx} > $pathPoints.size")
                 lastPointIx = 0
-                Timber.d("OvO reset")
+                Log.d("OvO", "OvO reset")
             }
             var lastPos = pathPoints[lastPointIx++].latlng
             while (lastPointIx < pathPoints.size) {
@@ -295,7 +295,7 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
                     listPts.add(lastPos)
                 }
                 val colorstr = if (color == POLYLINE_COLOR1) "RED" else if (color == POLYLINE_COLOR2) "yellow" else "blue"
-                Timber.d("OvO ${colorstr} ${debugstr}")
+                Log.d("OvO", "OvO ${colorstr} ${debugstr}")
                 PolylineOptions()
                     .color(color)
                     .width(POLYLINE_WIDTH)
@@ -348,50 +348,5 @@ class DrivingFragment : Fragment(R.layout.driving_fragment),
             )
         }
     }
-
-    // TODO: Step 1.0, Review Permissions: Handles permission result.
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<String>,
-//        grantResults: IntArray
-//    ) {
-//        when (requestCode) {
-//            REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE -> when {
-//                //grantResults.isEmpty() ->
-//                    // If user interaction was interrupted, the permission request
-//                    // is cancelled and you receive empty arrays.
-//                    //Log.d(TAG, "User interaction was cancelled.")
-//
-//                grantResults[0] == PackageManager.PERMISSION_GRANTED ->
-//                    // Permission was granted.
-//                    viewModel.startTracking()
-//
-//                else -> {
-//                    // Permission denied.
-//                    updateButtonText()
-//
-//                    Snackbar.make(
-//                        view?.rootView!!,
-//                        R.string.permission_denied_explanation,
-//                        Snackbar.LENGTH_LONG
-//                    )
-//                        .setAction(R.string.settings) {
-//                            // Build intent that displays the App settings screen.
-//                            val intent = Intent()
-//                            intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-//                            val uri = Uri.fromParts(
-//                                "package",
-//                                BuildConfig.APPLICATION_ID,
-//                                null
-//                            )
-//                            intent.data = uri
-//                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-//                            startActivity(intent)
-//                        }
-//                        .show()
-//                }
-//            }
-//        }
-//    }
 }
 
