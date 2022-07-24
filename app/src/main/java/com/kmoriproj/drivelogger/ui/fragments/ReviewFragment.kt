@@ -1,6 +1,7 @@
 package com.kmoriproj.drivelogger.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -21,7 +22,6 @@ import com.kmoriproj.drivelogger.common.RichPoint
 import com.kmoriproj.drivelogger.databinding.ReviewFragmentBinding
 import com.kmoriproj.drivelogger.ui.viewmodels.ReviewViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class ReviewFragment : Fragment(R.layout.review_fragment),
@@ -73,11 +73,11 @@ class ReviewFragment : Fragment(R.layout.review_fragment),
         var lastPointIx = 0
         // only add polyline if we have at least two elements in the last polyline
         if (pathPoints.isNotEmpty()) {
-            Timber.d("OvO addLatestPolyline size=${pathPoints.size} ix=$lastPointIx")
+            Log.d("OvO", "OvO addLatestPolyline size=${pathPoints.size} ix=$lastPointIx")
             if (lastPointIx >= pathPoints.size) {
-                Timber.d("    OvO cleared $lastPointIx > $pathPoints.size")
+                Log.d("OvO", "    OvO cleared $lastPointIx > $pathPoints.size")
                 lastPointIx = 0
-                Timber.d("OvO reset")
+                Log.d("OvO", "OvO reset")
             }
             var lastPos = pathPoints[lastPointIx++].latlng
             while (lastPointIx < pathPoints.size) {
@@ -92,7 +92,7 @@ class ReviewFragment : Fragment(R.layout.review_fragment),
                     listPts.add(lastPos)
                 }
                 val colorstr = if (color == POLYLINE_COLOR1) "RED" else if (color == Constants.POLYLINE_COLOR2) "yellow" else "blue"
-                Timber.d("OvO $colorstr $debugstr")
+                Log.d("OvO", "OvO $colorstr $debugstr")
                 PolylineOptions()
                     .color(color)
                     .width(POLYLINE_WIDTH)
