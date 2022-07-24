@@ -25,7 +25,7 @@ class Converters {
     }
     @TypeConverter
     public fun fromLatLng(v: LatLng): String {
-        return "%f,%f".format(v.longitude, v.latitude)
+        return "%f,%f".format(v.latitude, v.longitude)
     }
     @TypeConverter
     public fun toLatLng(s: String): LatLng {
