@@ -5,10 +5,7 @@ import android.content.Context
 import android.location.Location
 import android.os.Looper
 import android.util.Log
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
 import com.kmoriproj.drivelogger.BaseApplication
 import com.kmoriproj.drivelogger.common.Constants.Companion.FASTEST_LOCATION_UPDATE_INTERVAL
@@ -47,7 +44,7 @@ class SharedLocationManager(
         // delivered sooner than this interval.
         // maxWaitTime = 60000
 
-        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        priority = Priority.PRIORITY_HIGH_ACCURACY
     }
     init {
         Log.d("OvO", "SharedLocationManager created!!!")
@@ -68,8 +65,6 @@ class SharedLocationManager(
                 }
             }
         }
-        Log.d("OvO",  "startTrip!!!")
-        gps.startTrip()
         fusedLocationProviderClient.requestLocationUpdates(
             locationRequest,
             callback,

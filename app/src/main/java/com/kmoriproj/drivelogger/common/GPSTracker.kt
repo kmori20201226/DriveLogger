@@ -94,10 +94,21 @@ class GPSTracker @Inject constructor(
                 currentTrip?.let {
                     it.distanceFromStart += distanceInMeter
                 }
+                val speed = if (!loc.hasSpeed()) {
+                    val d = pos.distanceTo(lastPos!!)
+                    val t = (loc.time - lastTick!!) / 1000
+                    if (t > 0) {
+                        (d / 1000.0f) / (t / 3600.0f)
+                    } else {
+                        0.0f
+                    }
+                } else {
+                    loc.speed
+                }
                 liveCurrentTrip.postValue(currentTrip)
                 return LocationSnapshot(
                     time = loc.time,
-                    speed = loc.speed,
+                    speed = speed,
                     latlng = pos,
                     travelDistance = currentTrip?.distanceFromStart ?: 0.0f,
                     travelTime = loc.time - (currentTrip?.startTime ?: loc.time),
@@ -109,7 +120,6 @@ class GPSTracker @Inject constructor(
                 }
             }
         }
-        Log.d("OvO", "ADD Location Skipped")
         return null
     }
 }

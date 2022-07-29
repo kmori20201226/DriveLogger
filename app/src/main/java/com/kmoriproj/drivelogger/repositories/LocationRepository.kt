@@ -72,31 +72,29 @@ class LocationRepository @Inject constructor(
             }
 
         fun withinRange(curr: LocationSnapshot): Boolean {
-            val startMovingSpeed = sharedPreferences.getInt(KEY_START_MOVING_SPEED, 20).toFloat()
-            val stayTimeThreshold = sharedPreferences.getInt(KEY_STAY_TIME_THRESHOLD, 180)
 
-            val d = curr.latlng.distanceTo(last.latlng)
-            val t = (curr.time - last.time) / 1000
-            val speed = (d / 1000.0) / (t / 3600.0)
-            if (speed < startMovingSpeed) {
+            Log.d("OvO", "Speed=%f, startMovingSpeed=%f".format(curr.speedInKmH, startMovingSpeed))
+            if (curr.speedInKmH < startMovingSpeed) {
+                Log.d("OvO", "leaving")
                 accum.add(curr)
                 return true
             }
-            //if (curr.latlng.distanceTo(pivot) <= radiusThreshold) {
-            //    return true
-            //}
             val stayTime = (curr.time - initialLocation.time) / 1000
             if (stayTime >= stayTimeThreshold) {
-                val x = this@LocationRepository._stillSpots.value
                 this@LocationRepository._spots.add(
                     Spot(
                         tripId=this@LocationRepository.sharedLocationManager.tripId!!,
                         stayTime=stayTime,
                         point=center,
-                        radius=radius
+                        radius=radius,
+                        entered=initialLocation.time,
+                        leaved=curr.time
                     )
                 )
                 this@LocationRepository._stillSpots.postValue(_spots)
+                Log.d("OvO", "Spot added %d (%f, %f) %f".format(stayTime, center.latitude, center.longitude, radius))
+            } else {
+                Log.d("OvO", "Spot not added %d < %d".format(stayTime, stayTimeThreshold))
             }
             return false
         }
@@ -125,12 +123,18 @@ class LocationRepository @Inject constructor(
     private var locationFlowJob: Job? = null
 
     fun startTrackLocation() {
+        var firstStill = true
         locationFlowJob =
             sharedLocationManager.locationFlow
                 .onEach {
                     _pathPoints.value?.add(RichPoint.makeFrom(it, pathPoints.value!!))
                     _pathPoints.postValue(_pathPoints.value)
-                    keepTrackStill(it)
+                    if (it.speedInKmH >= startMovingSpeed) {
+                        firstStill = false
+                    }
+                    if (!firstStill) {
+                        keepTrackStill(it)
+                    }
                     _distanceFromStartKm.postValue(gpsTracker.distanceFromStartKm)
                 }
                 .launchIn((context.applicationContext as BaseApplication).applicationScope)
@@ -159,6 +163,7 @@ class LocationRepository @Inject constructor(
         if (_isTravelling.value != true) {
             _isTracking.value = true
             _isTravelling.value = true
+            startTripTime = System.currentTimeMillis()
             coroutinesScope.launch {
                 startTrip()
             }
@@ -166,14 +171,17 @@ class LocationRepository @Inject constructor(
         startTimer()
     }
 
-    private fun startTrip() {
+    private suspend fun startTrip() {
         Log.d("OvO", "ViewModel::startTrip")
-        startTripTime = System.currentTimeMillis()
         startTrackLocation()
+        gpsTracker.startTrip()
     }
 
     fun endTrip() {
         Log.d("OvO", "ViewModel::endTrip")
+        coroutinesScope.launch {
+            gpsTracker.flush()
+        }
         endTrackLocation()
         _distanceFromStartKm.value = 0.0f
         _timeRunInSeconds.value = 0
@@ -224,10 +232,13 @@ class LocationRepository @Inject constructor(
             _spots.forEach {
                 spotDao.insertSpot(it)
             }
+            _spots.clear()
         }
     }
 
     private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context!!);
+    private val startMovingSpeed = sharedPreferences.getInt(KEY_START_MOVING_SPEED, 20).toFloat()
+    private val stayTimeThreshold = sharedPreferences.getInt(KEY_STAY_TIME_THRESHOLD, 180)
 
     private val isForegroundEnabled
         get() = sharedPreferences.getBoolean(SharedPreferenceUtil.KEY_FOREGROUND_ENABLED, false)

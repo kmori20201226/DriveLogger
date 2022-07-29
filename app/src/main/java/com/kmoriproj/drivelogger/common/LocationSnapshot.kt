@@ -12,5 +12,5 @@ data class LocationSnapshot (
     val timeSpan: Long
     ){
     val speedInKmH
-        get() = (speed / 1000.0) / (speed / 3600.0)
+        get() = speed * 3600.0 / 1000.0   // M/Sec -> Km/Hour
 }
